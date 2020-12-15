@@ -102,7 +102,6 @@ public class SearchServiceImpl implements SearchServiceInterface {
         searchSourceBuilder.fetchSource(includedFields, null);
         searchRequest.source(searchSourceBuilder);
 
-        System.out.println(searchSourceBuilder);
         SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
 
         SearchHit[] searchHit = searchResponse.getHits().getHits();
@@ -112,11 +111,10 @@ public class SearchServiceImpl implements SearchServiceInterface {
         }
 
         Map<String, ProfileShardResult> profilingResults = searchResponse.getProfileResults();
-        System.out.println(profilingResults);
+
         for (Map.Entry<String, ProfileShardResult> profilingResult : profilingResults.entrySet()) {
             String key = profilingResult.getKey();
             ProfileShardResult profileShardResult = profilingResult.getValue();
-            System.out.println(profileShardResult.getQueryProfileResults().toArray());
         }
 
         return eventList;
