@@ -124,20 +124,26 @@ public class BulkInsert implements BulkInsertInterface {
 
     @Override
     public HttpStatus ingestDataCall() throws IOException, InterruptedException {
-        File jsonFile = new File("avigilon_events_log_2020-07-13.json");
-        FileReader fr = new FileReader(jsonFile);   //reads the file
-        BufferedReader br = new BufferedReader(fr);
         String line;
         List<EventDetail> eventDetailList = new ArrayList<>();
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JodaModule());
         Integer count = 1;
-        while ((line = br.readLine()) != null) {
-            EventDetail eventDetail = mapper.readValue(line, EventDetail.class);
-            eventDetail.setId(count);
-            eventDetailList.add(eventDetail);
-            count++;
+        File rep = new File("./collector");
+        File[] list = rep.listFiles();
+        for (int i = 0; i < Objects.requireNonNull(list).length; i++) {
+            File jsonFile = new File(list[i].toString());
+            FileReader fr = new FileReader(jsonFile);
+            BufferedReader br = new BufferedReader(fr);
+            while ((line = br.readLine()) != null) {
+                EventDetail eventDetail = mapper.readValue(line, EventDetail.class);
+                eventDetail.setId(count);
+                eventDetailList.add(eventDetail);
+                count++;
+            }
         }
+
+
         blk.ingestData(eventDetailList);
         return HttpStatus.OK;
     }
