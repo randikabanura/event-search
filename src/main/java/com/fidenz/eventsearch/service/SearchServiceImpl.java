@@ -35,9 +35,6 @@ import java.util.stream.Collectors;
 public class SearchServiceImpl implements SearchServiceInterface {
 
     @Autowired
-    BulkInsert blk;
-
-    @Autowired
     private RestHighLevelClient client;
 
     @Autowired
@@ -118,26 +115,6 @@ public class SearchServiceImpl implements SearchServiceInterface {
         }
 
         return eventList;
-    }
-
-    @Override
-    public HttpStatus ingestData() throws IOException, InterruptedException {
-        File jsonFile = new File("avigilon_events_log_2020-07-13.json");
-        FileReader fr = new FileReader(jsonFile);   //reads the file
-        BufferedReader br = new BufferedReader(fr);
-        String line;
-        List<EventDetail> eventDetailList = new ArrayList<>();
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JodaModule());
-        Integer count = 1;
-        while ((line = br.readLine()) != null) {
-            EventDetail eventDetail = mapper.readValue(line, EventDetail.class);
-            eventDetail.setId(count);
-            eventDetailList.add(eventDetail);
-            count++;
-        }
-        blk.ingestData(eventDetailList);
-        return HttpStatus.OK;
     }
 
     private void prepareFilters(BoolQueryBuilder searchQuery, List<Filter> filters) {

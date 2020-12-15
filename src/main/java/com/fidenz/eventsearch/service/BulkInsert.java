@@ -1,6 +1,7 @@
 package com.fidenz.eventsearch.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.fidenz.eventsearch.entity.EventDetail;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.bulk.BulkItemResponse;
@@ -16,6 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +34,9 @@ public class BulkInsert implements BulkInsertInterface {
 
     @Autowired
     private RestHighLevelClient client;
+
+    @Autowired
+    BulkInsert blk;
 
     @Override
     public HttpStatus ingestData(List<EventDetail> eventDetails) throws InterruptedException, IOException {
@@ -112,6 +119,26 @@ public class BulkInsert implements BulkInsertInterface {
             //log.error("Error", e);
             throw e;
         }
+        return HttpStatus.OK;
+    }
+
+    @Override
+    public HttpStatus ingestDataCall() throws IOException, InterruptedException {
+        File jsonFile = new File("avigilon_events_log_2020-07-13.json");
+        FileReader fr = new FileReader(jsonFile);   //reads the file
+        BufferedReader br = new BufferedReader(fr);
+        String line;
+        List<EventDetail> eventDetailList = new ArrayList<>();
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JodaModule());
+        Integer count = 1;
+        while ((line = br.readLine()) != null) {
+            EventDetail eventDetail = mapper.readValue(line, EventDetail.class);
+            eventDetail.setId(count);
+            eventDetailList.add(eventDetail);
+            count++;
+        }
+        blk.ingestData(eventDetailList);
         return HttpStatus.OK;
     }
 }

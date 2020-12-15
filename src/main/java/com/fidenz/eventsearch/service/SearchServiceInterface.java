@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.List;
 
 public interface SearchServiceInterface {
-    HttpStatus ingestData() throws IOException, InterruptedException;
+
 //
 //    List<Event> getAllData(int page) throws IOException;
 //

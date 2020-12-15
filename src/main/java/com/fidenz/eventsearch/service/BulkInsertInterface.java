@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface BulkInsertInterface {
     HttpStatus ingestData(List<EventDetail> eventDetails) throws InterruptedException, IOException;
+    HttpStatus ingestDataCall() throws IOException, InterruptedException;
 }

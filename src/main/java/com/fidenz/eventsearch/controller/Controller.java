@@ -5,6 +5,7 @@ import com.fidenz.eventsearch.dto.Filter;
 import com.fidenz.eventsearch.dto.GenericCounter;
 import com.fidenz.eventsearch.dto.TimeRange;
 import com.fidenz.eventsearch.entity.EventDetail;
+import com.fidenz.eventsearch.service.BulkInsertInterface;
 import com.fidenz.eventsearch.service.SearchServiceInterface;
 import com.fidenz.eventsearch.service.StatServiceInterface;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,11 +26,14 @@ public class Controller {
     public SearchServiceInterface searchService;
 
     @Autowired
+    public BulkInsertInterface bulkService;
+
+    @Autowired
     public StatServiceInterface statService;
 
     @PostMapping("/ingest")
     public HttpStatus ingest_data() throws IOException, InterruptedException {
-        return searchService.ingestData();
+        return bulkService.ingestDataCall();
     }
 
     @GetMapping("/events")
