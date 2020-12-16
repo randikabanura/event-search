@@ -9,7 +9,10 @@ import com.fidenz.eventsearch.service.BulkInsertInterface;
 import com.fidenz.eventsearch.service.SearchServiceInterface;
 import com.fidenz.eventsearch.service.StatServiceInterface;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -20,6 +23,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @RestController
+@EnableScheduling
 public class Controller {
 
     @Autowired
@@ -31,6 +35,8 @@ public class Controller {
     @Autowired
     public StatServiceInterface statService;
 
+
+    @Scheduled(fixedRateString = "${spring.data.elasticsearch.index-update-time}")
     @PostMapping("/ingest")
     public HttpStatus ingest_data() throws IOException, InterruptedException {
         return bulkService.ingestDataCall();
