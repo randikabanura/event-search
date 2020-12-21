@@ -4,11 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.fidenz.eventsearch.dto.IngestStatusDTO;
 import com.fidenz.eventsearch.entity.EventDetail;
+import com.fidenz.eventsearch.listener.EventDataIngestListener;
 import lombok.extern.slf4j.Slf4j;
-import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkProcessor;
 import org.elasticsearch.action.bulk.BulkRequest;
-import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.RequestOptions;
@@ -40,43 +39,20 @@ public class BulkInsert implements BulkInsertInterface {
     @Autowired
     private BulkInsert blk;
 
+    private EventDataIngestListener eventDataIngestListener;
+
 
     @Override
     public IngestStatusDTO ingestData(List<EventDetail> eventDetails) throws InterruptedException, IOException {
 
-        BulkProcessor.Listener listener = new BulkProcessor.Listener() {
+        BulkProcessor.Listener listener = new EventDataIngestListener();
 
-            @Override
-            public void beforeBulk(long l, BulkRequest bulkRequest) {
-                log.info("Updating Started");
-            }
 
-            @Override
-            public void afterBulk(long l, BulkRequest bulkRequest, BulkResponse bulkResponse) {
-                if (bulkResponse.hasFailures()) {
-                    for (BulkItemResponse bulkItemResponse : bulkResponse) {
-                        if (bulkItemResponse.isFailed()) {
-                            BulkItemResponse.Failure failure = bulkItemResponse.getFailure();
-                            log.info("Error ", failure.getCause());
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void afterBulk(long l, BulkRequest bulkRequest, Throwable throwable) {
-                log.error("error encountered", throwable);
-            }
-        };
         BulkProcessor bulkProcessor = BulkProcessor.builder(
-                (request, bulkListener) ->
-                        client.bulkAsync(request, RequestOptions.DEFAULT, bulkListener),
-                listener).build();
+                (request, bulkListener) -> client.bulkAsync(request, RequestOptions.DEFAULT, bulkListener), listener).build();
 
         try {
             BulkRequest bulkRequest = new BulkRequest();
-
-            //XContentBuilder builder = jsonBuilder().startObject();
 
             eventDetails.forEach(eventDetail -> {
                 Map<String, Object> map = objectMapper.convertValue(eventDetail, HashMap.class);
@@ -116,10 +92,8 @@ public class BulkInsert implements BulkInsertInterface {
 
         try {
             boolean terminated = bulkProcessor.awaitClose(30L, TimeUnit.SECONDS);
-            //log.info("Record Updation Success  {}", terminated);
             System.out.println("Updated");
         } catch (InterruptedException e) {
-            //log.error("Error", e);
             return new IngestStatusDTO(false, "Operation failed");
         }
         return new IngestStatusDTO(true, "Operation successful");
