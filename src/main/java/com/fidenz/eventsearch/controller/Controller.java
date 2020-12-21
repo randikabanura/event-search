@@ -34,7 +34,7 @@ public class Controller {
 
     @Scheduled(fixedRateString = "${spring.data.elasticsearch.index-update-time}")
     @PostMapping("/ingest")
-    public HttpStatus ingest_data() throws IOException, InterruptedException {
+    public IngestStatusDTO ingest_data() throws IOException, InterruptedException {
         return bulkService.ingestDataCall();
     }
 
@@ -54,7 +54,7 @@ public class Controller {
     }
 
     @GetMapping("/counter")
-    public GenericCounter getCount(@RequestParam(value = "filters", required = false) String filters, @RequestParam(value = "timeRange", required = false) String timeRange) throws IOException {
+    public GenericCounterDTO getCount(@RequestParam(value = "filters", required = false) String filters, @RequestParam(value = "timeRange", required = false) String timeRange) throws IOException {
         return statService.findCounter(this.map(filters), this.setTimeRange(timeRange));
     }
 
@@ -113,23 +113,23 @@ public class Controller {
         return filters;
     }
 
-    private TimeRange setTimeRange(String time_range){
-        TimeRange timeRange = new TimeRange();
+    private TimeRangeDTO setTimeRange(String time_range){
+        TimeRangeDTO timeRangeDTO = new TimeRangeDTO();
         if (time_range == null) {
-            return timeRange;
+            return timeRangeDTO;
         }
 
         for (String time : time_range.split(";")) {
             final String[] values = time.split(":");
 
             if(values[0].toLowerCase().equals("from")) {
-                timeRange.setFrom(values[1]);
+                timeRangeDTO.setFrom(values[1]);
             }
             if(values[0].toLowerCase().equals("to")) {
-                timeRange.setTo(values[1]);
+                timeRangeDTO.setTo(values[1]);
             }
         }
 
-        return timeRange;
+        return timeRangeDTO;
     }
 }

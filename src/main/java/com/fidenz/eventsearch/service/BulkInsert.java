@@ -2,6 +2,7 @@ package com.fidenz.eventsearch.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
+import com.fidenz.eventsearch.dto.IngestStatusDTO;
 import com.fidenz.eventsearch.entity.EventDetail;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.bulk.BulkItemResponse;
@@ -14,7 +15,7 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -32,14 +33,16 @@ public class BulkInsert implements BulkInsertInterface {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Qualifier("createInstance")
     @Autowired
     private RestHighLevelClient client;
 
     @Autowired
-    BulkInsert blk;
+    private BulkInsert blk;
+
 
     @Override
-    public HttpStatus ingestData(List<EventDetail> eventDetails) throws InterruptedException, IOException {
+    public IngestStatusDTO ingestData(List<EventDetail> eventDetails) throws InterruptedException, IOException {
 
         BulkProcessor.Listener listener = new BulkProcessor.Listener() {
 
@@ -108,7 +111,7 @@ public class BulkInsert implements BulkInsertInterface {
 
         } catch (Exception e) {
             log.error("error encountered", e);
-            throw e;
+            return new IngestStatusDTO(false, "Operation failed");
         }
 
         try {
@@ -117,13 +120,13 @@ public class BulkInsert implements BulkInsertInterface {
             System.out.println("Updated");
         } catch (InterruptedException e) {
             //log.error("Error", e);
-            throw e;
+            return new IngestStatusDTO(false, "Operation failed");
         }
-        return HttpStatus.OK;
+        return new IngestStatusDTO(true, "Operation successful");
     }
 
     @Override
-    public HttpStatus ingestDataCall() throws IOException, InterruptedException {
+    public IngestStatusDTO ingestDataCall() throws IOException, InterruptedException {
         String line;
         List<EventDetail> eventDetailList = new ArrayList<>();
         ObjectMapper mapper = new ObjectMapper();
@@ -144,7 +147,6 @@ public class BulkInsert implements BulkInsertInterface {
         }
 
 
-        blk.ingestData(eventDetailList);
-        return HttpStatus.OK;
+        return blk.ingestData(eventDetailList);
     }
 }

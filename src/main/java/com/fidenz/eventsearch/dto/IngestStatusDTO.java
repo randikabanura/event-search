@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class TimeRange {
-    private String from;
-    private String to;
+public class IngestStatusDTO {
+    private boolean status;
+    private String message;
 }

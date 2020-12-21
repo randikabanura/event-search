@@ -7,9 +7,9 @@ import java.util.HashMap;
 import java.util.List;
 
 public interface StatServiceInterface {
-    GenericCounter findCounter(List<FilterDTO> filters, TimeRange timeRange) throws IOException;
-    List<String> findCameras(List<FilterDTO> filters, TimeRange timeRange) throws IOException;
+    GenericCounterDTO findCounter(List<FilterDTO> filters, TimeRangeDTO timeRangeDTO) throws IOException;
+    List<String> findCameras(List<FilterDTO> filters, TimeRangeDTO timeRangeDTO) throws IOException;
     AverageCounterDTO findAverages(List<FilterDTO> filters) throws IOException;
-    HashMap<String, Long> findCountByCategory(List<FilterDTO> filters, TimeRange timeRange) throws IOException;
-    EventTimeRangeDTO findEventTimeRange(String event_start, String event_end, List<FilterDTO> filters, TimeRange timeRange) throws IOException;
+    HashMap<String, Long> findCountByCategory(List<FilterDTO> filters, TimeRangeDTO timeRangeDTO) throws IOException;
+    EventTimeRangeDTO findEventTimeRange(String event_start, String event_end, List<FilterDTO> filters, TimeRangeDTO timeRangeDTO) throws IOException;
 }

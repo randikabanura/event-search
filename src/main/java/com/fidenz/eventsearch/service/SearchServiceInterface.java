@@ -1,7 +1,7 @@
 package com.fidenz.eventsearch.service;
 
 import com.fidenz.eventsearch.dto.FilterDTO;
-import com.fidenz.eventsearch.dto.TimeRange;
+import com.fidenz.eventsearch.dto.TimeRangeDTO;
 import com.fidenz.eventsearch.entity.EventDetail;
 
 import java.io.IOException;
@@ -19,5 +19,5 @@ public interface SearchServiceInterface {
 
     List<EventDetail> findAll(int page) throws IOException;
 
-    List<EventDetail> search(String query, int page, List<FilterDTO> filters, TimeRange timeRange) throws IOException;
+    List<EventDetail> search(String query, int page, List<FilterDTO> filters, TimeRangeDTO timeRangeDTO) throws IOException;
 }

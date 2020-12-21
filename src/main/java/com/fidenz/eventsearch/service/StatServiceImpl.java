@@ -49,7 +49,7 @@ public class StatServiceImpl implements StatServiceInterface {
 
 
     @Override
-    public GenericCounter findCounter(List<FilterDTO> filters, TimeRange timeRange) throws IOException {
+    public GenericCounterDTO findCounter(List<FilterDTO> filters, TimeRangeDTO timeRangeDTO) throws IOException {
         TermsAggregationBuilder aggregationBuilderAggName = AggregationBuilders.terms("agg_names").field("Agg.Name.keyword").size(100000000).minDocCount(1);
         CardinalityAggregationBuilder aggregationBuildEvent = AggregationBuilders.cardinality("events").field("id");
         TermsAggregationBuilder aggregationBuilderMotionDetector = AggregationBuilders.terms("motion_detectors").field("Event.Params.DeviceName.keyword").size(100000000).minDocCount(1);
@@ -60,7 +60,7 @@ public class StatServiceImpl implements StatServiceInterface {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder searchQuery = QueryBuilders.boolQuery();
 
-        searchQuery.filter(QueryBuilders.rangeQuery("Timestamp").gte(timeRange.getFrom()).lte(timeRange.getTo()));
+        searchQuery.filter(QueryBuilders.rangeQuery("Timestamp").gte(timeRangeDTO.getFrom()).lte(timeRangeDTO.getTo()));
         prepareFilters(searchQuery, filters);
 
         searchSourceBuilder.query(searchQuery).aggregation(aggregationBuilderAggName)
@@ -75,17 +75,17 @@ public class StatServiceImpl implements StatServiceInterface {
         Terms camera = searchResponse.getAggregations().get("cameras");
         Cardinality event = searchResponse.getAggregations().get("events");
 
-        GenericCounter genericCounter = new GenericCounter();
-        genericCounter.setNoOfCameras(camera.getBuckets().size());
-        genericCounter.setNoOfEvents(event.getValue());
-        genericCounter.setNoOfLocations(agg_name.getBuckets().size());
-        genericCounter.setNoOfMotionDetectors(motion_detector.getBuckets().size());
+        GenericCounterDTO genericCounterDTO = new GenericCounterDTO();
+        genericCounterDTO.setNoOfCameras(camera.getBuckets().size());
+        genericCounterDTO.setNoOfEvents(event.getValue());
+        genericCounterDTO.setNoOfLocations(agg_name.getBuckets().size());
+        genericCounterDTO.setNoOfMotionDetectors(motion_detector.getBuckets().size());
 
-        return genericCounter;
+        return genericCounterDTO;
     }
 
     @Override
-    public List<String> findCameras(List<FilterDTO> filters, TimeRange timeRange) throws IOException {
+    public List<String> findCameras(List<FilterDTO> filters, TimeRangeDTO timeRangeDTO) throws IOException {
         TermsAggregationBuilder aggregationBuilderCamera = AggregationBuilders.terms("cameras").field("Event.Params.DeviceName.keyword").size(100000000).minDocCount(1);
 
         SearchRequest searchRequest = new SearchRequest();
@@ -93,7 +93,7 @@ public class StatServiceImpl implements StatServiceInterface {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder searchQuery = QueryBuilders.boolQuery();
 
-        searchQuery.filter(QueryBuilders.rangeQuery("Timestamp").gte(timeRange.getFrom()).lte(timeRange.getTo()));
+        searchQuery.filter(QueryBuilders.rangeQuery("Timestamp").gte(timeRangeDTO.getFrom()).lte(timeRangeDTO.getTo()));
         prepareFilters(searchQuery, filters);
 
         searchSourceBuilder.query(searchQuery).aggregation(aggregationBuilderCamera);
@@ -157,7 +157,7 @@ public class StatServiceImpl implements StatServiceInterface {
     }
 
     @Override
-    public HashMap<String, Long> findCountByCategory(List<FilterDTO> filters, TimeRange timeRange) throws IOException {
+    public HashMap<String, Long> findCountByCategory(List<FilterDTO> filters, TimeRangeDTO timeRangeDTO) throws IOException {
         TermsAggregationBuilder aggregationBuilderCamera = AggregationBuilders.terms("cameras").field("Event.Params.DeviceName.keyword").size(100000000).minDocCount(1);
 
         SearchRequest searchRequest = new SearchRequest();
@@ -165,7 +165,7 @@ public class StatServiceImpl implements StatServiceInterface {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder searchQuery = QueryBuilders.boolQuery();
 
-        searchQuery.filter(QueryBuilders.rangeQuery("Timestamp").gte(timeRange.getFrom()).lte(timeRange.getTo()));
+        searchQuery.filter(QueryBuilders.rangeQuery("Timestamp").gte(timeRangeDTO.getFrom()).lte(timeRangeDTO.getTo()));
         prepareFilters(searchQuery, filters);
 
         searchSourceBuilder.query(searchQuery).aggregation(aggregationBuilderCamera);
@@ -184,11 +184,11 @@ public class StatServiceImpl implements StatServiceInterface {
     }
 
     @Override
-    public EventTimeRangeDTO findEventTimeRange(String event_start, String event_end, List<FilterDTO> filters, TimeRange timeRange) throws IOException {
+    public EventTimeRangeDTO findEventTimeRange(String event_start, String event_end, List<FilterDTO> filters, TimeRangeDTO timeRangeDTO) throws IOException {
         MultiSearchRequest request = new MultiSearchRequest();
         SearchRequest firstSearchRequest = new SearchRequest();
         BoolQueryBuilder searchQueryFirst = QueryBuilders.boolQuery();
-        searchQueryFirst.filter(QueryBuilders.rangeQuery("Timestamp").gte(timeRange.getFrom()).lte(timeRange.getTo()));
+        searchQueryFirst.filter(QueryBuilders.rangeQuery("Timestamp").gte(timeRangeDTO.getFrom()).lte(timeRangeDTO.getTo()));
         searchQueryFirst.must(QueryBuilders.matchQuery("Event.Params.Name", event_start).operator(Operator.AND));
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         prepareFilters(searchQueryFirst, filters);
@@ -199,7 +199,7 @@ public class StatServiceImpl implements StatServiceInterface {
         request.add(firstSearchRequest);
         SearchRequest secondSearchRequest = new SearchRequest();
         BoolQueryBuilder searchQuerySecond = QueryBuilders.boolQuery();
-        searchQuerySecond.filter(QueryBuilders.rangeQuery("Timestamp").gte(timeRange.getFrom()).lte(timeRange.getTo()));
+        searchQuerySecond.filter(QueryBuilders.rangeQuery("Timestamp").gte(timeRangeDTO.getFrom()).lte(timeRangeDTO.getTo()));
         searchQuerySecond.must(QueryBuilders.matchQuery("Event.Params.Name", event_end).operator(Operator.AND));
         prepareFilters(searchQuerySecond, filters);
         searchSourceBuilder = new SearchSourceBuilder();
@@ -229,8 +229,6 @@ public class StatServiceImpl implements StatServiceInterface {
             eventDetailFirst = objectMapper.convertValue(hit.getSourceAsMap(), EventDetail.class);
         }
 
-        System.out.println(eventDetailFirst);
-        System.out.println(eventDetailSecond);
 
         if(searchHitFirst.length == 1 && searchHitSecond.length == 1) {
             EventTimeRangeDTO eventTimeRangeDTO = new EventTimeRangeDTO();

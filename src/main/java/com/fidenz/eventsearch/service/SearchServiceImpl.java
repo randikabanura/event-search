@@ -2,7 +2,7 @@ package com.fidenz.eventsearch.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fidenz.eventsearch.dto.FilterDTO;
-import com.fidenz.eventsearch.dto.TimeRange;
+import com.fidenz.eventsearch.dto.TimeRangeDTO;
 import com.fidenz.eventsearch.entity.EventDetail;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
@@ -75,8 +75,7 @@ public class SearchServiceImpl implements SearchServiceInterface {
         return eventList;
     }
 
-    public List<EventDetail> search(String query, int page, List<FilterDTO> filters, TimeRange timeRange) throws IOException{
-        System.out.println(filters);
+    public List<EventDetail> search(String query, int page, List<FilterDTO> filters, TimeRangeDTO timeRangeDTO) throws IOException{
         SearchRequest searchRequest = new SearchRequest();
         searchRequest.indices("event_detail");
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
@@ -86,7 +85,7 @@ public class SearchServiceImpl implements SearchServiceInterface {
             searchQuery.must(multiMatchQuery);
         }
 
-        searchQuery.filter(QueryBuilders.rangeQuery("Timestamp").gte(timeRange.getFrom()).lte(timeRange.getTo()));
+        searchQuery.filter(QueryBuilders.rangeQuery("Timestamp").gte(timeRangeDTO.getFrom()).lte(timeRangeDTO.getTo()));
         prepareFilters(searchQuery, filters);
 
         searchSourceBuilder.query(searchQuery).from(page * pagination_size).size(pagination_size);

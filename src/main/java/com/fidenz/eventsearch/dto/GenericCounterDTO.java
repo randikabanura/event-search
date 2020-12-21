@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class GenericCounter {
+public class GenericCounterDTO {
     private long noOfCameras;
     private long noOfEvents;
     private long noOfLocations;
