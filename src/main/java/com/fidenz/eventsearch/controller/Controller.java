@@ -1,9 +1,6 @@
 package com.fidenz.eventsearch.controller;
 
-import com.fidenz.eventsearch.dto.AverageCounter;
-import com.fidenz.eventsearch.dto.Filter;
-import com.fidenz.eventsearch.dto.GenericCounter;
-import com.fidenz.eventsearch.dto.TimeRange;
+import com.fidenz.eventsearch.dto.*;
 import com.fidenz.eventsearch.entity.EventDetail;
 import com.fidenz.eventsearch.service.BulkInsertInterface;
 import com.fidenz.eventsearch.service.SearchServiceInterface;
@@ -75,6 +72,11 @@ public class Controller {
     @GetMapping("/events_by_category")
     public HashMap<String, Long> getCountByCategory(@RequestParam(value = "filter", required = false) String filter, @RequestParam(value = "time_range", required = false) String time_range) throws IOException {
         return statService.findCountByCategory(this.map(filter), this.setTimeRange(time_range));
+    }
+
+    @GetMapping("/event_time")
+    public EventTimeRange getEventTimeRange(@RequestParam(value = "filter", required = false) String filter, @RequestParam(value = "time_range", required = false) String time_range) throws IOException {
+        return statService.findEventTimeRange(this.map(filter), this.setTimeRange(time_range));
     }
 
     private List<Filter> map(String filters) {

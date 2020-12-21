@@ -22,9 +22,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,7 +66,6 @@ public class SearchServiceImpl implements SearchServiceInterface {
         searchSourceBuilder.query(searchQuery).from(page * pagination_size).size(pagination_size);
         searchSourceBuilder.fetchSource(includedFields, null);
 
-        searchSourceBuilder.profile(true);
         searchRequest.source(searchSourceBuilder);
         SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
 
@@ -105,13 +101,6 @@ public class SearchServiceImpl implements SearchServiceInterface {
         List<EventDetail> eventList = new ArrayList<>();
         for (SearchHit hit : searchHit) {
             eventList.add(objectMapper.convertValue(hit.getSourceAsMap(), EventDetail.class));
-        }
-
-        Map<String, ProfileShardResult> profilingResults = searchResponse.getProfileResults();
-
-        for (Map.Entry<String, ProfileShardResult> profilingResult : profilingResults.entrySet()) {
-            String key = profilingResult.getKey();
-            ProfileShardResult profileShardResult = profilingResult.getValue();
         }
 
         return eventList;

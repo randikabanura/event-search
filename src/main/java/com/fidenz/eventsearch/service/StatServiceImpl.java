@@ -1,10 +1,7 @@
 package com.fidenz.eventsearch.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fidenz.eventsearch.dto.AverageCounter;
-import com.fidenz.eventsearch.dto.Filter;
-import com.fidenz.eventsearch.dto.GenericCounter;
-import com.fidenz.eventsearch.dto.TimeRange;
+import com.fidenz.eventsearch.dto.*;
 import com.fidenz.eventsearch.entity.EventDetail;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
@@ -182,6 +179,16 @@ public class StatServiceImpl implements StatServiceInterface {
         }
 
         return cameraListCount;
+    }
+
+    @Override
+    public EventTimeRange findEventTimeRange(List<Filter> filters, TimeRange timeRange) throws IOException {
+        SearchRequest searchRequest = new SearchRequest();
+        searchRequest.indices("event_detail");
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        BoolQueryBuilder searchQuery = QueryBuilders.boolQuery();
+
+        return null;
     }
 
     private void prepareFilters(BoolQueryBuilder searchQuery, List<Filter> filters) {
