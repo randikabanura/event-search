@@ -225,14 +225,18 @@ public class StatServiceImpl implements StatServiceInterface {
             eventDetailFirst = objectMapper.convertValue(hit.getSourceAsMap(), EventDetail.class);
         }
 
-        EventTimeRange eventTimeRange = new EventTimeRange();
-        eventTimeRange.setEndEvent(eventDetailSecond);
-        eventTimeRange.setStartEvent(eventDetailFirst);
-        eventTimeRange.setFrom(eventDetailFirst.getTimestamp());
-        eventTimeRange.setTo(eventDetailSecond.getTimestamp());
-        Period period = new Period( eventDetailFirst.getTimestamp() , eventDetailSecond.getTimestamp() ) ;
-        eventTimeRange.setRange(period.toStandardDuration().getMillis());
-        return eventTimeRange;
+        if(searchHitFirst.length == 1 && searchHitSecond.length == 1) {
+            EventTimeRange eventTimeRange = new EventTimeRange();
+            eventTimeRange.setEndEvent(eventDetailSecond);
+            eventTimeRange.setStartEvent(eventDetailFirst);
+            eventTimeRange.setFrom(eventDetailFirst.getTimestamp());
+            eventTimeRange.setTo(eventDetailSecond.getTimestamp());
+            Period period = new Period(eventDetailFirst.getTimestamp(), eventDetailSecond.getTimestamp());
+            eventTimeRange.setRange(period.toStandardDuration().getMillis());
+            return eventTimeRange;
+        }else{
+            return null;
+        }
     }
 
     private void prepareFilters(BoolQueryBuilder searchQuery, List<Filter> filters) {
