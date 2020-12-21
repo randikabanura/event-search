@@ -39,8 +39,6 @@ public class BulkInsert implements BulkInsertInterface {
     @Autowired
     private BulkInsert blk;
 
-    private EventDataIngestListener eventDataIngestListener;
-
 
     @Override
     public IngestStatusDTO ingestData(List<EventDetail> eventDetails) throws InterruptedException, IOException {
@@ -52,38 +50,7 @@ public class BulkInsert implements BulkInsertInterface {
                 (request, bulkListener) -> client.bulkAsync(request, RequestOptions.DEFAULT, bulkListener), listener).build();
 
         try {
-            BulkRequest bulkRequest = new BulkRequest();
-
-            eventDetails.forEach(eventDetail -> {
-                Map<String, Object> map = objectMapper.convertValue(eventDetail, HashMap.class);
-                map.values().removeAll(Collections.singleton(null));
-                Set<String> keys1 = map.keySet();
-                XContentBuilder builder = null;
-                try {
-                    builder = jsonBuilder().startObject();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                for (String keys : keys1) {
-                    try {
-                        builder.field(keys, map.get(keys));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                try {
-                    builder.endObject();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                IndexRequest indexRequest = new IndexRequest("event_detail", "_doc", eventDetail.getId().toString()).
-                        source(builder);
-                UpdateRequest updateRequest = new UpdateRequest("event_detail", "_doc", eventDetail.getId().toString());
-                updateRequest.doc(builder);
-                updateRequest.upsert(indexRequest);
-
-                bulkProcessor.add(updateRequest);
-            });
+            setIndexUpdate(eventDetails, bulkProcessor);
 
         } catch (Exception e) {
             log.error("error encountered", e);
@@ -122,5 +89,40 @@ public class BulkInsert implements BulkInsertInterface {
 
 
         return blk.ingestData(eventDetailList);
+    }
+
+    private void setIndexUpdate(List<EventDetail> eventDetails, BulkProcessor bulkProcessor){
+        BulkRequest bulkRequest = new BulkRequest();
+
+        eventDetails.forEach(eventDetail -> {
+            Map<String, Object> map = objectMapper.convertValue(eventDetail, HashMap.class);
+            map.values().removeAll(Collections.singleton(null));
+            Set<String> keys1 = map.keySet();
+            XContentBuilder builder = null;
+            try {
+                builder = jsonBuilder().startObject();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            for (String keys : keys1) {
+                try {
+                    builder.field(keys, map.get(keys));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            try {
+                builder.endObject();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            IndexRequest indexRequest = new IndexRequest("event_detail", "_doc", eventDetail.getId().toString()).
+                    source(builder);
+            UpdateRequest updateRequest = new UpdateRequest("event_detail", "_doc", eventDetail.getId().toString());
+            updateRequest.doc(builder);
+            updateRequest.upsert(indexRequest);
+
+            bulkProcessor.add(updateRequest);
+        });
     }
 }

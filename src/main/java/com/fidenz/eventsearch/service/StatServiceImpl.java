@@ -70,7 +70,7 @@ public class StatServiceImpl implements StatServiceInterface {
 
         searchRequest.source(searchSourceBuilder);
         SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
-        Terms agg_name = searchResponse.getAggregations().get("agg_names");
+        Terms aggName = searchResponse.getAggregations().get("agg_names");
         Terms motion_detector = searchResponse.getAggregations().get("motion_detectors");
         Terms camera = searchResponse.getAggregations().get("cameras");
         Cardinality event = searchResponse.getAggregations().get("events");
@@ -78,7 +78,7 @@ public class StatServiceImpl implements StatServiceInterface {
         GenericCounterDTO genericCounterDTO = new GenericCounterDTO();
         genericCounterDTO.setNoOfCameras(camera.getBuckets().size());
         genericCounterDTO.setNoOfEvents(event.getValue());
-        genericCounterDTO.setNoOfLocations(agg_name.getBuckets().size());
+        genericCounterDTO.setNoOfLocations(aggName.getBuckets().size());
         genericCounterDTO.setNoOfMotionDetectors(motion_detector.getBuckets().size());
 
         return genericCounterDTO;
@@ -128,9 +128,9 @@ public class StatServiceImpl implements StatServiceInterface {
         searchRequest.source(searchSourceBuilderFirst);
         SearchResponse searchResponseFirst = client.search(searchRequest, RequestOptions.DEFAULT);
         SearchHit[] searchHitFirst = searchResponseFirst.getHits().getHits();
-        DateTime first_event_time = new DateTime();
+        DateTime firstEventTime = new DateTime();
         for (SearchHit hit : searchHitFirst) {
-            first_event_time = objectMapper.convertValue(hit.getSourceAsMap(), EventDetail.class).getTimestamp();
+            firstEventTime = objectMapper.convertValue(hit.getSourceAsMap(), EventDetail.class).getTimestamp();
         }
 
         SearchSourceBuilder searchSourceBuilderLast = new SearchSourceBuilder();
@@ -138,14 +138,14 @@ public class StatServiceImpl implements StatServiceInterface {
         searchRequest.source(searchSourceBuilderLast);
         SearchResponse searchResponseLast = client.search(searchRequest, RequestOptions.DEFAULT);
         SearchHit[] searchHitLast = searchResponseLast.getHits().getHits();
-        DateTime last_event_time = new DateTime();
+        DateTime lastEventTime = new DateTime();
         for (SearchHit hit : searchHitLast) {
-            last_event_time = objectMapper.convertValue(hit.getSourceAsMap(), EventDetail.class).getTimestamp();
+            lastEventTime = objectMapper.convertValue(hit.getSourceAsMap(), EventDetail.class).getTimestamp();
         }
 
-        int weeks = Weeks.weeksBetween(first_event_time.withTimeAtStartOfDay(), last_event_time).getWeeks() + 1;
-        int days = Days.daysBetween(first_event_time, last_event_time).getDays() + 1;
-        int hours = Hours.hoursBetween(first_event_time, last_event_time).getHours() + 1;
+        int weeks = Weeks.weeksBetween(firstEventTime.withTimeAtStartOfDay(), lastEventTime).getWeeks() + 1;
+        int days = Days.daysBetween(firstEventTime, lastEventTime).getDays() + 1;
+        int hours = Hours.hoursBetween(firstEventTime, lastEventTime).getHours() + 1;
         long total_hits =  countResponse.getCount();
 
         AverageCounterDTO averageCounterDTO = new AverageCounterDTO();
