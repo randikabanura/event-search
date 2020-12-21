@@ -188,20 +188,25 @@ public class StatServiceImpl implements StatServiceInterface {
     public EventTimeRange findEventTimeRange(String event_start, String event_end, List<Filter> filters, TimeRange timeRange) throws IOException {
         MultiSearchRequest request = new MultiSearchRequest();
         SearchRequest firstSearchRequest = new SearchRequest();
-        BoolQueryBuilder searchQuery = QueryBuilders.boolQuery();
+        BoolQueryBuilder searchQueryFirst = QueryBuilders.boolQuery();
+        searchQueryFirst.filter(QueryBuilders.rangeQuery("Timestamp").gte(timeRange.getFrom()).lte(timeRange.getTo()));
+        searchQueryFirst.must(QueryBuilders.matchQuery("Event.Params.Name", event_start).operator(Operator.AND));
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        searchSourceBuilder.query(QueryBuilders.matchQuery("Event.Params.Name", event_start).operator(Operator.AND));
+        prepareFilters(searchQueryFirst, filters);
+        searchSourceBuilder.query(searchQueryFirst);
         searchSourceBuilder.sort(new FieldSortBuilder("Timestamp").order(SortOrder.DESC));
         searchSourceBuilder.size(1);
-        prepareFilters(searchQuery, filters);
         firstSearchRequest.source(searchSourceBuilder);
         request.add(firstSearchRequest);
         SearchRequest secondSearchRequest = new SearchRequest();
+        BoolQueryBuilder searchQuerySecond = QueryBuilders.boolQuery();
+        searchQuerySecond.filter(QueryBuilders.rangeQuery("Timestamp").gte(timeRange.getFrom()).lte(timeRange.getTo()));
+        searchQuerySecond.must(QueryBuilders.matchQuery("Event.Params.Name", event_end).operator(Operator.AND));
+        prepareFilters(searchQuerySecond, filters);
         searchSourceBuilder = new SearchSourceBuilder();
-        searchSourceBuilder.query(QueryBuilders.matchQuery("Event.Params.Name", event_end).operator(Operator.AND));
+        searchSourceBuilder.query(searchQuerySecond);
         searchSourceBuilder.sort(new FieldSortBuilder("Timestamp").order(SortOrder.DESC));
         searchSourceBuilder.size(1);
-        prepareFilters(searchQuery, filters);
         secondSearchRequest.source(searchSourceBuilder);
         request.add(secondSearchRequest);
 
