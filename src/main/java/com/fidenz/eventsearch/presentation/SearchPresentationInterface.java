@@ -10,4 +10,6 @@ import java.util.List;
 
 public interface SearchPresentationInterface {
     List<EventDetailDTO> search(String query, int page, List<FilterDTO> filters, TimeRangeDTO timeRangeDTO) throws IOException;
+    EventDetailDTO findById(String id) throws IOException;
+    List<EventDetailDTO> findAll(int page) throws IOException;
 }

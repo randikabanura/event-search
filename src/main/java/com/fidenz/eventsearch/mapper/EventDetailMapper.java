@@ -14,7 +14,7 @@ import java.util.List;
 public interface EventDetailMapper {
     EventDetailMapper INSTANCE = Mappers.getMapper( EventDetailMapper.class );
 
-    @Mapping(source = "messageType", target = "messageTypeAvg")
+    @Mapping(source = "messageType", target = "typeMessage")
     EventDetailDTO eventDetailToEventDetailDto(EventDetail eventDetail);
 
     @MapMapping(keyDateFormat = "")
@@ -23,6 +23,6 @@ public interface EventDetailMapper {
     @MapMapping(keyDateFormat = "")
     List<EventDetail> toListEntity(List<EventDetailDTO> eventDetailDTO);
 
-    @Mapping(source = "messageTypeAvg", target = "messageType")
+    @Mapping(source = "typeMessage", target = "messageType")
     EventDetail eventDetailDtoToEventDetail(EventDetailDTO eventDetailDTO);
 }

@@ -184,12 +184,12 @@ public class StatServiceImpl implements StatServiceInterface {
     }
 
     @Override
-    public EventTimeRangeDTO findEventTimeRange(String event_start, String event_end, List<FilterDTO> filters, TimeRangeDTO timeRangeDTO) throws IOException {
+    public EventTimeRangeDTO findEventTimeRange(String eventStart, String eventEnd, List<FilterDTO> filters, TimeRangeDTO timeRangeDTO) throws IOException {
         MultiSearchRequest request = new MultiSearchRequest();
         SearchRequest firstSearchRequest = new SearchRequest();
         BoolQueryBuilder searchQueryFirst = QueryBuilders.boolQuery();
         searchQueryFirst.filter(QueryBuilders.rangeQuery("Timestamp").gte(timeRangeDTO.getFrom()).lte(timeRangeDTO.getTo()));
-        searchQueryFirst.must(QueryBuilders.matchQuery("Event.Params.Name", event_start).operator(Operator.AND));
+        searchQueryFirst.must(QueryBuilders.matchQuery("Event.Params.Name", eventStart).operator(Operator.AND));
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         prepareFilters(searchQueryFirst, filters);
         searchSourceBuilder.query(searchQueryFirst);
@@ -200,7 +200,7 @@ public class StatServiceImpl implements StatServiceInterface {
         SearchRequest secondSearchRequest = new SearchRequest();
         BoolQueryBuilder searchQuerySecond = QueryBuilders.boolQuery();
         searchQuerySecond.filter(QueryBuilders.rangeQuery("Timestamp").gte(timeRangeDTO.getFrom()).lte(timeRangeDTO.getTo()));
-        searchQuerySecond.must(QueryBuilders.matchQuery("Event.Params.Name", event_end).operator(Operator.AND));
+        searchQuerySecond.must(QueryBuilders.matchQuery("Event.Params.Name", eventEnd).operator(Operator.AND));
         prepareFilters(searchQuerySecond, filters);
         searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(searchQuerySecond);

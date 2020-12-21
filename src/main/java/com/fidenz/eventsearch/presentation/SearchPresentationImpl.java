@@ -21,4 +21,16 @@ public class SearchPresentationImpl implements SearchPresentationInterface{
     public List<EventDetailDTO> search(String query, int page, List<FilterDTO> filters, TimeRangeDTO timeRangeDTO) throws IOException {
         return EventDetailMapper.INSTANCE.toListDTO(this.searchServiceInterface.search(query, page, filters, timeRangeDTO));
     }
+
+    @Override
+    public EventDetailDTO findById(String id) throws IOException {
+        return EventDetailMapper.INSTANCE.eventDetailToEventDetailDto(this.searchServiceInterface.findById(id));
+    }
+
+    @Override
+    public List<EventDetailDTO> findAll(int page) throws IOException {
+        return EventDetailMapper.INSTANCE.toListDTO(this.searchServiceInterface.findAll(page));
+    }
+
+
 }

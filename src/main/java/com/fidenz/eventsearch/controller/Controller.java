@@ -24,13 +24,7 @@ import java.util.stream.Collectors;
 public class Controller {
 
     @Autowired
-    public SearchServiceInterface searchService;
-
-    @Autowired
     public BulkInsertInterface bulkService;
-
-    @Autowired
-    public StatServiceInterface statService;
 
     @Autowired
     public StatPresentationInterface statPresentation;
@@ -45,13 +39,13 @@ public class Controller {
     }
 
     @GetMapping("/events")
-    public Iterable<EventDetail> getAllData(@RequestParam(defaultValue = "0") int page) throws IOException {
-        return searchService.findAll(page);
+    public Iterable<EventDetailDTO> getAllData(@RequestParam(defaultValue = "0") int page) throws IOException {
+        return searchPresentation.findAll(page);
     }
 
     @GetMapping("/event/{id}")
-    public EventDetail getEvent(@PathVariable String id) throws IOException {
-        return searchService.findById(id);
+    public EventDetailDTO getEvent(@PathVariable String id) throws IOException {
+        return searchPresentation.findById(id);
     }
 
     @GetMapping("/search")
@@ -61,12 +55,12 @@ public class Controller {
 
     @GetMapping("/counter")
     public GenericCounterDTO getCount(@RequestParam(value = "filters", required = false) String filters, @RequestParam(value = "timeRange", required = false) String timeRange) throws IOException {
-        return statService.findCounter(this.map(filters), this.setTimeRange(timeRange));
+        return statPresentation.getCounter(this.map(filters), this.setTimeRange(timeRange));
     }
 
     @GetMapping("/cameras")
     public List<String> getCameras(@RequestParam(value = "filters", required = false) String filters, @RequestParam(value = "timeRange", required = false) String timeRange) throws IOException {
-        return statService.findCameras(this.map(filters), this.setTimeRange(timeRange));
+        return statPresentation.getCameras(this.map(filters), this.setTimeRange(timeRange));
     }
 
     @GetMapping("/averages")
@@ -76,12 +70,12 @@ public class Controller {
 
     @GetMapping("/events_by_category")
     public HashMap<String, Long> getCountByCategory(@RequestParam(value = "filters", required = false) String filters, @RequestParam(value = "timeRange", required = false) String timeRange) throws IOException {
-        return statService.findCountByCategory(this.map(filters), this.setTimeRange(timeRange));
+        return statPresentation.getCountByCategory(this.map(filters), this.setTimeRange(timeRange));
     }
 
     @GetMapping("/event_time")
-    public EventTimeRangeDTO getEventTimeRange(@RequestParam String event_start, @RequestParam String event_end, @RequestParam(value = "filters", required = false) String filters, @RequestParam(value = "timeRange", required = false) String timeRange) throws IOException {
-        return statService.findEventTimeRange(event_start, event_end, this.map(filters), this.setTimeRange(timeRange));
+    public EventTimeRangeDTO getEventTimeRange(@RequestParam String eventStart, @RequestParam String eventEnd, @RequestParam(value = "filters", required = false) String filters, @RequestParam(value = "timeRange", required = false) String timeRange) throws IOException {
+        return statPresentation.getEventTimeRange(eventStart, eventEnd, this.map(filters), this.setTimeRange(timeRange));
     }
 
     private List<FilterDTO> map(String filters) {

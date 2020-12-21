@@ -21,19 +21,19 @@ public class EventDetailDTO {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private DateTime Timestamp;
 
-    @JsonProperty("MessageTypeAvg")
-    private String MessageTypeAvg;
+    @JsonProperty("TypeMessage")
+    private String TypeMessage;
 
     @Id
     @JsonProperty("id")
     private Integer id;
 
     @JsonProperty("Node")
-    private com.fidenz.eventsearch.entity.Node Node;
+    private Node Node;
 
     @JsonProperty("Agg")
-    private com.fidenz.eventsearch.entity.Agg Agg;
+    private Agg Agg;
 
     @JsonProperty("Event")
-    private com.fidenz.eventsearch.entity.Event Event;
+    private Event Event;
 }
