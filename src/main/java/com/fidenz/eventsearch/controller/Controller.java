@@ -75,8 +75,8 @@ public class Controller {
     }
 
     @GetMapping("/event_time")
-    public EventTimeRange getEventTimeRange(@RequestParam String event, @RequestParam(value = "filter", required = false) String filter, @RequestParam(value = "time_range", required = false) String time_range) throws IOException {
-        return statService.findEventTimeRange(event, this.map(filter), this.setTimeRange(time_range));
+    public EventTimeRange getEventTimeRange(@RequestParam String event_start, @RequestParam String event_end, @RequestParam(value = "filter", required = false) String filter, @RequestParam(value = "time_range", required = false) String time_range) throws IOException {
+        return statService.findEventTimeRange(event_start, event_end, this.map(filter), this.setTimeRange(time_range));
     }
 
     private List<Filter> map(String filters) {

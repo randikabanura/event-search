@@ -185,12 +185,12 @@ public class StatServiceImpl implements StatServiceInterface {
     }
 
     @Override
-    public EventTimeRange findEventTimeRange(String event, List<Filter> filters, TimeRange timeRange) throws IOException {
+    public EventTimeRange findEventTimeRange(String event_start, String event_end, List<Filter> filters, TimeRange timeRange) throws IOException {
         MultiSearchRequest request = new MultiSearchRequest();
         SearchRequest firstSearchRequest = new SearchRequest();
         BoolQueryBuilder searchQuery = QueryBuilders.boolQuery();
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        searchSourceBuilder.query(QueryBuilders.matchQuery("Event.Params.Name", event.trim() + " event started").operator(Operator.AND));
+        searchSourceBuilder.query(QueryBuilders.matchQuery("Event.Params.Name", event_start).operator(Operator.AND));
         searchSourceBuilder.sort(new FieldSortBuilder("Timestamp").order(SortOrder.DESC));
         searchSourceBuilder.size(1);
         prepareFilters(searchQuery, filters);
@@ -198,7 +198,7 @@ public class StatServiceImpl implements StatServiceInterface {
         request.add(firstSearchRequest);
         SearchRequest secondSearchRequest = new SearchRequest();
         searchSourceBuilder = new SearchSourceBuilder();
-        searchSourceBuilder.query(QueryBuilders.matchQuery("Event.Params.Name", event.trim() + " event stopped").operator(Operator.AND));
+        searchSourceBuilder.query(QueryBuilders.matchQuery("Event.Params.Name", event_end).operator(Operator.AND));
         searchSourceBuilder.sort(new FieldSortBuilder("Timestamp").order(SortOrder.DESC));
         searchSourceBuilder.size(1);
         prepareFilters(searchQuery, filters);
@@ -224,6 +224,9 @@ public class StatServiceImpl implements StatServiceInterface {
         for (SearchHit hit : searchHitFirst) {
             eventDetailFirst = objectMapper.convertValue(hit.getSourceAsMap(), EventDetail.class);
         }
+
+        System.out.println(eventDetailFirst);
+        System.out.println(eventDetailSecond);
 
         if(searchHitFirst.length == 1 && searchHitSecond.length == 1) {
             EventTimeRange eventTimeRange = new EventTimeRange();
