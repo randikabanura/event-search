@@ -3,6 +3,8 @@ package com.fidenz.eventsearch.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fidenz.eventsearch.dto.*;
 import com.fidenz.eventsearch.entity.EventDetail;
+import org.elasticsearch.action.search.MultiSearchRequest;
+import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -10,6 +12,7 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.core.CountRequest;
 import org.elasticsearch.client.core.CountResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
@@ -19,12 +22,11 @@ import org.elasticsearch.search.aggregations.metrics.Cardinality;
 import org.elasticsearch.search.aggregations.metrics.CardinalityAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.search.sort.ScoreSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
-import org.joda.time.DateTime;
-import org.joda.time.Days;
-import org.joda.time.Hours;
-import org.joda.time.Weeks;
+import org.joda.time.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -42,6 +44,7 @@ public class StatServiceImpl implements StatServiceInterface {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Qualifier("createInstance")
     @Autowired
     private RestHighLevelClient client;
 
@@ -182,13 +185,54 @@ public class StatServiceImpl implements StatServiceInterface {
     }
 
     @Override
-    public EventTimeRange findEventTimeRange(List<Filter> filters, TimeRange timeRange) throws IOException {
-        SearchRequest searchRequest = new SearchRequest();
-        searchRequest.indices("event_detail");
-        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    public EventTimeRange findEventTimeRange(String event, List<Filter> filters, TimeRange timeRange) throws IOException {
+        MultiSearchRequest request = new MultiSearchRequest();
+        SearchRequest firstSearchRequest = new SearchRequest();
         BoolQueryBuilder searchQuery = QueryBuilders.boolQuery();
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.query(QueryBuilders.matchQuery("Event.Params.Name", event.trim() + " event started").operator(Operator.AND));
+        searchSourceBuilder.sort(new FieldSortBuilder("Timestamp").order(SortOrder.DESC));
+        searchSourceBuilder.size(1);
+        prepareFilters(searchQuery, filters);
+        firstSearchRequest.source(searchSourceBuilder);
+        request.add(firstSearchRequest);
+        SearchRequest secondSearchRequest = new SearchRequest();
+        searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.query(QueryBuilders.matchQuery("Event.Params.Name", event.trim() + " event stopped").operator(Operator.AND));
+        searchSourceBuilder.sort(new FieldSortBuilder("Timestamp").order(SortOrder.DESC));
+        searchSourceBuilder.size(1);
+        prepareFilters(searchQuery, filters);
+        secondSearchRequest.source(searchSourceBuilder);
+        request.add(secondSearchRequest);
 
-        return null;
+        MultiSearchResponse multiSearchResponse = client.msearch(request, RequestOptions.DEFAULT);
+
+        MultiSearchResponse.Item firstResponse = multiSearchResponse.getResponses()[0];
+        SearchResponse searchResponseFirst = firstResponse.getResponse();
+        MultiSearchResponse.Item secondResponse = multiSearchResponse.getResponses()[1];
+        SearchResponse searchResponseSecond = secondResponse.getResponse();
+
+
+        SearchHit[] searchHitSecond = searchResponseSecond.getHits().getHits();
+        EventDetail eventDetailSecond = new EventDetail();
+        for (SearchHit hit : searchHitSecond) {
+           eventDetailSecond = objectMapper.convertValue(hit.getSourceAsMap(), EventDetail.class);
+        }
+
+        SearchHit[] searchHitFirst = searchResponseFirst.getHits().getHits();
+        EventDetail eventDetailFirst = new EventDetail();
+        for (SearchHit hit : searchHitFirst) {
+            eventDetailFirst = objectMapper.convertValue(hit.getSourceAsMap(), EventDetail.class);
+        }
+
+        EventTimeRange eventTimeRange = new EventTimeRange();
+        eventTimeRange.setEndEvent(eventDetailSecond);
+        eventTimeRange.setStartEvent(eventDetailFirst);
+        eventTimeRange.setFrom(eventDetailFirst.getTimestamp());
+        eventTimeRange.setTo(eventDetailSecond.getTimestamp());
+        Period period = new Period( eventDetailFirst.getTimestamp() , eventDetailSecond.getTimestamp() ) ;
+        eventTimeRange.setRange(period.toStandardDuration().getMillis());
+        return eventTimeRange;
     }
 
     private void prepareFilters(BoolQueryBuilder searchQuery, List<Filter> filters) {

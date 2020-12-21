@@ -11,5 +11,5 @@ public interface StatServiceInterface {
     List<String> findCameras(List<Filter> filters, TimeRange timeRange) throws IOException;
     AverageCounter findAverages(List<Filter> filters) throws IOException;
     HashMap<String, Long> findCountByCategory(List<Filter> filters, TimeRange timeRange) throws IOException;
-    EventTimeRange findEventTimeRange(List<Filter> filters, TimeRange timeRange) throws IOException;
+    EventTimeRange findEventTimeRange(String event, List<Filter> filters, TimeRange timeRange) throws IOException;
 }
