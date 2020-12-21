@@ -12,7 +12,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class EventTimeRange {
+public class EventTimeRangeDTO {
 
     @JsonProperty("From")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)

@@ -1,8 +1,7 @@
 package com.fidenz.eventsearch.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.joda.JodaModule;
-import com.fidenz.eventsearch.dto.Filter;
+import com.fidenz.eventsearch.dto.FilterDTO;
 import com.fidenz.eventsearch.dto.TimeRange;
 import com.fidenz.eventsearch.entity.EventDetail;
 import org.elasticsearch.action.get.GetRequest;
@@ -16,10 +15,8 @@ import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.profile.ProfileShardResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -78,7 +75,8 @@ public class SearchServiceImpl implements SearchServiceInterface {
         return eventList;
     }
 
-    public List<EventDetail> search(String query, int page, List<Filter> filters, TimeRange timeRange) throws IOException{
+    public List<EventDetail> search(String query, int page, List<FilterDTO> filters, TimeRange timeRange) throws IOException{
+        System.out.println(filters);
         SearchRequest searchRequest = new SearchRequest();
         searchRequest.indices("event_detail");
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
@@ -106,13 +104,13 @@ public class SearchServiceImpl implements SearchServiceInterface {
         return eventList;
     }
 
-    private void prepareFilters(BoolQueryBuilder searchQuery, List<Filter> filters) {
+    private void prepareFilters(BoolQueryBuilder searchQuery, List<FilterDTO> filters) {
         if (filters == null) {
             return;
         }
-        filters.stream().collect(Collectors.groupingBy(Filter::getKey)).forEach((key, values) -> {
+        filters.stream().collect(Collectors.groupingBy(FilterDTO::getKey)).forEach((key, values) -> {
             BoolQueryBuilder bool = QueryBuilders.boolQuery();
-            values.forEach(value -> bool.should(QueryBuilders.matchQuery(key, value.getValue())));
+            values.forEach(value -> bool.should(QueryBuilders.matchQuery(key, value.getValues())));
             searchQuery.must(bool);
         });
     }

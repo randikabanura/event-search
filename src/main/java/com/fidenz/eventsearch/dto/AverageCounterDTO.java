@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AverageCounter {
+public class AverageCounterDTO {
     private float avgForWeek;
     private float avgForDay;
     private float avgForHour;

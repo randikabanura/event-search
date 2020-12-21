@@ -6,7 +6,6 @@ import com.fidenz.eventsearch.service.BulkInsertInterface;
 import com.fidenz.eventsearch.service.SearchServiceInterface;
 import com.fidenz.eventsearch.service.StatServiceInterface;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -50,37 +49,37 @@ public class Controller {
     }
 
     @GetMapping("/search")
-    public Iterable<EventDetail> getSearch(@RequestParam String query, @RequestParam(defaultValue = "0") int page,  @RequestParam(value = "filter", required = false) String filter, @RequestParam(value = "time_range", required = false) String time_range) throws IOException {
-        return searchService.search(query, page, this.map(filter), this.setTimeRange(time_range));
+    public Iterable<EventDetail> getSearch(@RequestParam String query, @RequestParam(defaultValue = "0") int page,  @RequestParam(value = "filters", required = false) String filters, @RequestParam(value = "timeRange", required = false) String timeRange) throws IOException {
+        return searchService.search(query, page, this.map(filters), this.setTimeRange(timeRange));
     }
 
     @GetMapping("/counter")
-    public GenericCounter getCount(@RequestParam(value = "filter", required = false) String filter, @RequestParam(value = "time_range", required = false) String time_range) throws IOException {
-        return statService.findCounter(this.map(filter), this.setTimeRange(time_range));
+    public GenericCounter getCount(@RequestParam(value = "filters", required = false) String filters, @RequestParam(value = "timeRange", required = false) String timeRange) throws IOException {
+        return statService.findCounter(this.map(filters), this.setTimeRange(timeRange));
     }
 
     @GetMapping("/cameras")
-    public List<String> getCameras(@RequestParam(value = "filter", required = false) String filter, @RequestParam(value = "time_range", required = false) String time_range) throws IOException {
-        return statService.findCameras(this.map(filter), this.setTimeRange(time_range));
+    public List<String> getCameras(@RequestParam(value = "filters", required = false) String filters, @RequestParam(value = "timeRange", required = false) String timeRange) throws IOException {
+        return statService.findCameras(this.map(filters), this.setTimeRange(timeRange));
     }
 
     @GetMapping("/averages")
-    public AverageCounter getAverages(@RequestParam(value = "filter", required = false) String filter) throws IOException {
-        return statService.findAverages(this.map(filter));
+    public AverageCounterDTO getAverages(@RequestParam(value = "filters", required = false) String filters) throws IOException {
+        return statService.findAverages(this.map(filters));
     }
 
     @GetMapping("/events_by_category")
-    public HashMap<String, Long> getCountByCategory(@RequestParam(value = "filter", required = false) String filter, @RequestParam(value = "time_range", required = false) String time_range) throws IOException {
-        return statService.findCountByCategory(this.map(filter), this.setTimeRange(time_range));
+    public HashMap<String, Long> getCountByCategory(@RequestParam(value = "filters", required = false) String filters, @RequestParam(value = "timeRange", required = false) String timeRange) throws IOException {
+        return statService.findCountByCategory(this.map(filters), this.setTimeRange(timeRange));
     }
 
     @GetMapping("/event_time")
-    public EventTimeRange getEventTimeRange(@RequestParam String event_start, @RequestParam String event_end, @RequestParam(value = "filter", required = false) String filter, @RequestParam(value = "time_range", required = false) String time_range) throws IOException {
-        return statService.findEventTimeRange(event_start, event_end, this.map(filter), this.setTimeRange(time_range));
+    public EventTimeRangeDTO getEventTimeRange(@RequestParam String event_start, @RequestParam String event_end, @RequestParam(value = "filters", required = false) String filters, @RequestParam(value = "timeRange", required = false) String timeRange) throws IOException {
+        return statService.findEventTimeRange(event_start, event_end, this.map(filters), this.setTimeRange(timeRange));
     }
 
-    private List<Filter> map(String filters) {
-        List<Filter> filterList = new ArrayList<>();
+    private List<FilterDTO> map(String filters) {
+        List<FilterDTO> filterList = new ArrayList<>();
         if (filters == null) {
             return filterList;
         }
@@ -96,8 +95,8 @@ public class Controller {
                 .collect(Collectors.toList());
     }
 
-    private List<Filter> mapValues(String filter) {
-        List<Filter> filters = new ArrayList<>();
+    private List<FilterDTO> mapValues(String filter) {
+        List<FilterDTO> filters = new ArrayList<>();
         // check if filter string is valid
         if (!filter.contains(":")) {
             return filters;
@@ -105,10 +104,10 @@ public class Controller {
         final String[] values = filter.split(":");
         if (values[1].contains(",")) {
             for (String f : values[1].split(",")) {
-                filters.add(new Filter(values[0], f));
+                filters.add(new FilterDTO(values[0], f));
             }
         } else {
-            filters.add(new Filter(values[0], values[1]));
+            filters.add(new FilterDTO(values[0], values[1]));
         }
 
         return filters;

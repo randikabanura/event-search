@@ -22,7 +22,6 @@ import org.elasticsearch.search.aggregations.metrics.Cardinality;
 import org.elasticsearch.search.aggregations.metrics.CardinalityAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
-import org.elasticsearch.search.sort.ScoreSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.joda.time.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +49,7 @@ public class StatServiceImpl implements StatServiceInterface {
 
 
     @Override
-    public GenericCounter findCounter(List<Filter> filters, TimeRange timeRange) throws IOException {
+    public GenericCounter findCounter(List<FilterDTO> filters, TimeRange timeRange) throws IOException {
         TermsAggregationBuilder aggregationBuilderAggName = AggregationBuilders.terms("agg_names").field("Agg.Name.keyword").size(100000000).minDocCount(1);
         CardinalityAggregationBuilder aggregationBuildEvent = AggregationBuilders.cardinality("events").field("id");
         TermsAggregationBuilder aggregationBuilderMotionDetector = AggregationBuilders.terms("motion_detectors").field("Event.Params.DeviceName.keyword").size(100000000).minDocCount(1);
@@ -86,7 +85,7 @@ public class StatServiceImpl implements StatServiceInterface {
     }
 
     @Override
-    public List<String> findCameras(List<Filter> filters, TimeRange timeRange) throws IOException {
+    public List<String> findCameras(List<FilterDTO> filters, TimeRange timeRange) throws IOException {
         TermsAggregationBuilder aggregationBuilderCamera = AggregationBuilders.terms("cameras").field("Event.Params.DeviceName.keyword").size(100000000).minDocCount(1);
 
         SearchRequest searchRequest = new SearchRequest();
@@ -112,7 +111,7 @@ public class StatServiceImpl implements StatServiceInterface {
     }
 
     @Override
-    public AverageCounter findAverages(List<Filter> filters) throws IOException {
+    public AverageCounterDTO findAverages(List<FilterDTO> filters) throws IOException {
         CountRequest countRequest = new CountRequest();
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder searchQuery = QueryBuilders.boolQuery();
@@ -149,16 +148,16 @@ public class StatServiceImpl implements StatServiceInterface {
         int hours = Hours.hoursBetween(first_event_time, last_event_time).getHours() + 1;
         long total_hits =  countResponse.getCount();
 
-        AverageCounter averageCounter = new AverageCounter();
-        averageCounter.setAvgForWeek(total_hits/weeks);
-        averageCounter.setAvgForDay(total_hits/days);
-        averageCounter.setAvgForHour(total_hits/hours);
+        AverageCounterDTO averageCounterDTO = new AverageCounterDTO();
+        averageCounterDTO.setAvgForWeek(total_hits/weeks);
+        averageCounterDTO.setAvgForDay(total_hits/days);
+        averageCounterDTO.setAvgForHour(total_hits/hours);
 
-        return averageCounter;
+        return averageCounterDTO;
     }
 
     @Override
-    public HashMap<String, Long> findCountByCategory(List<Filter> filters, TimeRange timeRange) throws IOException {
+    public HashMap<String, Long> findCountByCategory(List<FilterDTO> filters, TimeRange timeRange) throws IOException {
         TermsAggregationBuilder aggregationBuilderCamera = AggregationBuilders.terms("cameras").field("Event.Params.DeviceName.keyword").size(100000000).minDocCount(1);
 
         SearchRequest searchRequest = new SearchRequest();
@@ -185,7 +184,7 @@ public class StatServiceImpl implements StatServiceInterface {
     }
 
     @Override
-    public EventTimeRange findEventTimeRange(String event_start, String event_end, List<Filter> filters, TimeRange timeRange) throws IOException {
+    public EventTimeRangeDTO findEventTimeRange(String event_start, String event_end, List<FilterDTO> filters, TimeRange timeRange) throws IOException {
         MultiSearchRequest request = new MultiSearchRequest();
         SearchRequest firstSearchRequest = new SearchRequest();
         BoolQueryBuilder searchQueryFirst = QueryBuilders.boolQuery();
@@ -234,26 +233,26 @@ public class StatServiceImpl implements StatServiceInterface {
         System.out.println(eventDetailSecond);
 
         if(searchHitFirst.length == 1 && searchHitSecond.length == 1) {
-            EventTimeRange eventTimeRange = new EventTimeRange();
-            eventTimeRange.setEndEvent(eventDetailSecond);
-            eventTimeRange.setStartEvent(eventDetailFirst);
-            eventTimeRange.setFrom(eventDetailFirst.getTimestamp());
-            eventTimeRange.setTo(eventDetailSecond.getTimestamp());
+            EventTimeRangeDTO eventTimeRangeDTO = new EventTimeRangeDTO();
+            eventTimeRangeDTO.setEndEvent(eventDetailSecond);
+            eventTimeRangeDTO.setStartEvent(eventDetailFirst);
+            eventTimeRangeDTO.setFrom(eventDetailFirst.getTimestamp());
+            eventTimeRangeDTO.setTo(eventDetailSecond.getTimestamp());
             Period period = new Period(eventDetailFirst.getTimestamp(), eventDetailSecond.getTimestamp());
-            eventTimeRange.setRange(period.toStandardDuration().getMillis());
-            return eventTimeRange;
+            eventTimeRangeDTO.setRange(period.toStandardDuration().getMillis());
+            return eventTimeRangeDTO;
         }else{
             return null;
         }
     }
 
-    private void prepareFilters(BoolQueryBuilder searchQuery, List<Filter> filters) {
+    private void prepareFilters(BoolQueryBuilder searchQuery, List<FilterDTO> filters) {
         if (filters == null) {
             return;
         }
-        filters.stream().collect(Collectors.groupingBy(Filter::getKey)).forEach((key, values) -> {
+        filters.stream().collect(Collectors.groupingBy(FilterDTO::getKey)).forEach((key, values) -> {
             BoolQueryBuilder bool = QueryBuilders.boolQuery();
-            values.forEach(value -> bool.should(QueryBuilders.matchQuery(key, value.getValue())));
+            values.forEach(value -> bool.should(QueryBuilders.matchQuery(key, value.getValues())));
             searchQuery.must(bool);
         });
     }
