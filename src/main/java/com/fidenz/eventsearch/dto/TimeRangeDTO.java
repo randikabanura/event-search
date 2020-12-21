@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TimeRangeDTO {
-    private String from;
-    private String to;
+    private String From;
+    private String To;
 }

@@ -10,6 +10,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FilterDTO {
-    private String key;
-    private String values;
+    private String Key;
+    private String Values;
 }

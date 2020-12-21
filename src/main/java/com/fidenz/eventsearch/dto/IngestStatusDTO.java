@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class IngestStatusDTO {
-    private boolean status;
-    private String message;
+    private boolean Status;
+    private String Message;
 }
