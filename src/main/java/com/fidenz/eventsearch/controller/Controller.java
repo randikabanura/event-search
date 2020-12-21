@@ -2,11 +2,12 @@ package com.fidenz.eventsearch.controller;
 
 import com.fidenz.eventsearch.dto.*;
 import com.fidenz.eventsearch.entity.EventDetail;
+import com.fidenz.eventsearch.presentation.SearchPresentationInterface;
+import com.fidenz.eventsearch.presentation.StatPresentationInterface;
 import com.fidenz.eventsearch.service.BulkInsertInterface;
 import com.fidenz.eventsearch.service.SearchServiceInterface;
 import com.fidenz.eventsearch.service.StatServiceInterface;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
@@ -31,6 +32,11 @@ public class Controller {
     @Autowired
     public StatServiceInterface statService;
 
+    @Autowired
+    public StatPresentationInterface statPresentation;
+
+    @Autowired
+    public SearchPresentationInterface searchPresentation;
 
     @Scheduled(fixedRateString = "${spring.data.elasticsearch.index-update-time}")
     @PostMapping("/ingest")
@@ -49,8 +55,8 @@ public class Controller {
     }
 
     @GetMapping("/search")
-    public Iterable<EventDetail> getSearch(@RequestParam String query, @RequestParam(defaultValue = "0") int page,  @RequestParam(value = "filters", required = false) String filters, @RequestParam(value = "timeRange", required = false) String timeRange) throws IOException {
-        return searchService.search(query, page, this.map(filters), this.setTimeRange(timeRange));
+    public Iterable<EventDetailDTO> getSearch(@RequestParam String query, @RequestParam(defaultValue = "0") int page,  @RequestParam(value = "filters", required = false) String filters, @RequestParam(value = "timeRange", required = false) String timeRange) throws IOException {
+        return searchPresentation.search(query, page, this.map(filters), this.setTimeRange(timeRange));
     }
 
     @GetMapping("/counter")
@@ -65,7 +71,7 @@ public class Controller {
 
     @GetMapping("/averages")
     public AverageCounterDTO getAverages(@RequestParam(value = "filters", required = false) String filters) throws IOException {
-        return statService.findAverages(this.map(filters));
+        return statPresentation.getAverages(this.map(filters));
     }
 
     @GetMapping("/events_by_category")
