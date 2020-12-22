@@ -29,7 +29,7 @@ public class EventDetailDTO {
     private Integer id;
 
     @JsonProperty("Node")
-    private Node Node;
+    private NodeDTO Node;
 
     @JsonProperty("Agg")
     private AggDTO Agg;
