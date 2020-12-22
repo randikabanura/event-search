@@ -2,7 +2,10 @@ package com.fidenz.eventsearch.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fidenz.eventsearch.dto.*;
+import com.fidenz.eventsearch.entity.AverageCounter;
 import com.fidenz.eventsearch.entity.EventDetail;
+import com.fidenz.eventsearch.entity.EventTimeRange;
+import com.fidenz.eventsearch.entity.GenericCounter;
 import org.elasticsearch.action.search.MultiSearchRequest;
 import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchRequest;
@@ -49,7 +52,7 @@ public class StatServiceImpl implements StatServiceInterface {
 
 
     @Override
-    public GenericCounterDTO findCounter(List<FilterDTO> filters, TimeRangeDTO timeRangeDTO) throws IOException {
+    public GenericCounter findCounter(List<FilterDTO> filters, TimeRangeDTO timeRangeDTO) throws IOException {
         TermsAggregationBuilder aggregationBuilderAggName = AggregationBuilders.terms("agg_names").field("Agg.Name.keyword").size(100000000).minDocCount(1);
         CardinalityAggregationBuilder aggregationBuildEvent = AggregationBuilders.cardinality("events").field("id");
         TermsAggregationBuilder aggregationBuilderMotionDetector = AggregationBuilders.terms("motion_detectors").field("Event.Params.DeviceName.keyword").size(100000000).minDocCount(1);
@@ -75,13 +78,13 @@ public class StatServiceImpl implements StatServiceInterface {
         Terms camera = searchResponse.getAggregations().get("cameras");
         Cardinality event = searchResponse.getAggregations().get("events");
 
-        GenericCounterDTO genericCounterDTO = new GenericCounterDTO();
-        genericCounterDTO.setNoOfCameras(camera.getBuckets().size());
-        genericCounterDTO.setNoOfEvents(event.getValue());
-        genericCounterDTO.setNoOfLocations(aggName.getBuckets().size());
-        genericCounterDTO.setNoOfMotionDetectors(motion_detector.getBuckets().size());
+        GenericCounter genericCounter = new GenericCounter();
+        genericCounter.setNoOfCameras(camera.getBuckets().size());
+        genericCounter.setNoOfEvents(event.getValue());
+        genericCounter.setNoOfLocations(aggName.getBuckets().size());
+        genericCounter.setNoOfMotionDetectors(motion_detector.getBuckets().size());
 
-        return genericCounterDTO;
+        return genericCounter;
     }
 
     @Override
@@ -111,7 +114,7 @@ public class StatServiceImpl implements StatServiceInterface {
     }
 
     @Override
-    public AverageCounterDTO findAverages(List<FilterDTO> filters) throws IOException {
+    public AverageCounter findAverages(List<FilterDTO> filters) throws IOException {
         CountRequest countRequest = new CountRequest();
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder searchQuery = QueryBuilders.boolQuery();
@@ -148,12 +151,12 @@ public class StatServiceImpl implements StatServiceInterface {
         int hours = Hours.hoursBetween(firstEventTime, lastEventTime).getHours() + 1;
         long total_hits =  countResponse.getCount();
 
-        AverageCounterDTO averageCounterDTO = new AverageCounterDTO();
-        averageCounterDTO.setAvgForWeek(total_hits/weeks);
-        averageCounterDTO.setAvgForDay(total_hits/days);
-        averageCounterDTO.setAvgForHour(total_hits/hours);
+        AverageCounter averageCounter = new AverageCounter();
+        averageCounter.setAvgForWeek(total_hits/weeks);
+        averageCounter.setAvgForDay(total_hits/days);
+        averageCounter.setAvgForHour(total_hits/hours);
 
-        return averageCounterDTO;
+        return averageCounter;
     }
 
     @Override
@@ -184,7 +187,7 @@ public class StatServiceImpl implements StatServiceInterface {
     }
 
     @Override
-    public EventTimeRangeDTO findEventTimeRange(String eventStart, String eventEnd, List<FilterDTO> filters, TimeRangeDTO timeRangeDTO) throws IOException {
+    public EventTimeRange findEventTimeRange(String eventStart, String eventEnd, List<FilterDTO> filters, TimeRangeDTO timeRangeDTO) throws IOException {
         MultiSearchRequest request = new MultiSearchRequest();
         SearchRequest firstSearchRequest = new SearchRequest();
         BoolQueryBuilder searchQueryFirst = QueryBuilders.boolQuery();
@@ -231,14 +234,14 @@ public class StatServiceImpl implements StatServiceInterface {
 
 
         if(searchHitFirst.length == 1 && searchHitSecond.length == 1) {
-            EventTimeRangeDTO eventTimeRangeDTO = new EventTimeRangeDTO();
-            eventTimeRangeDTO.setEndEvent(eventDetailSecond);
-            eventTimeRangeDTO.setStartEvent(eventDetailFirst);
-            eventTimeRangeDTO.setFrom(eventDetailFirst.getTimestamp());
-            eventTimeRangeDTO.setTo(eventDetailSecond.getTimestamp());
+            EventTimeRange eventTimeRange = new EventTimeRange();
+            eventTimeRange.setEndEvent(eventDetailSecond);
+            eventTimeRange.setStartEvent(eventDetailFirst);
+            eventTimeRange.setFrom(eventDetailFirst.getTimestamp());
+            eventTimeRange.setTo(eventDetailSecond.getTimestamp());
             Period period = new Period(eventDetailFirst.getTimestamp(), eventDetailSecond.getTimestamp());
-            eventTimeRangeDTO.setRange(period.toStandardDuration().getMillis());
-            return eventTimeRangeDTO;
+            eventTimeRange.setRange(period.toStandardDuration().getMillis());
+            return eventTimeRange;
         }else{
             return null;
         }
