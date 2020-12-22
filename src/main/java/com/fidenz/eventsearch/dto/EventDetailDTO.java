@@ -32,8 +32,8 @@ public class EventDetailDTO {
     private Node Node;
 
     @JsonProperty("Agg")
-    private Agg Agg;
+    private AggDTO Agg;
 
     @JsonProperty("Event")
-    private Event Event;
+    private EventDTO Event;
 }
