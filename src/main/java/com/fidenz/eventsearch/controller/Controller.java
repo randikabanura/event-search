@@ -3,9 +3,7 @@ package com.fidenz.eventsearch.controller;
 import com.fidenz.eventsearch.dto.*;
 import com.fidenz.eventsearch.presentation.SearchPresentationInterface;
 import com.fidenz.eventsearch.presentation.StatPresentationInterface;
-import com.fidenz.eventsearch.request.AverageRequest;
-import com.fidenz.eventsearch.request.CountByCategoryRequest;
-import com.fidenz.eventsearch.request.SearchEventRequest;
+import com.fidenz.eventsearch.request.*;
 import com.fidenz.eventsearch.service.BulkInsertInterface;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -58,9 +56,19 @@ public class Controller {
         return searchPresentation.search(query, page, this.map(filters), this.setTimeRange(timeRange));
     }
 
+    @PostMapping("/counter")
+    public GenericCounterDTO getCount(@RequestBody CounterRequest counterRequest) throws IOException {
+        return statPresentation.getCounter(counterRequest.getFilters(), counterRequest.getTimeRange());
+    }
+
     @GetMapping("/counter")
     public GenericCounterDTO getCount(@RequestParam(value = "filters", required = false) String filters, @RequestParam(value = "timeRange", required = false) String timeRange) throws IOException {
         return statPresentation.getCounter(this.map(filters), this.setTimeRange(timeRange));
+    }
+
+    @PostMapping("/cameras")
+    public List<String> getCameras(@RequestBody CameraRequest cameraRequest) throws IOException {
+        return statPresentation.getCameras(cameraRequest.getFilters(), cameraRequest.getTimeRange());
     }
 
     @GetMapping("/cameras")
@@ -86,6 +94,11 @@ public class Controller {
     @GetMapping("/events_by_category")
     public HashMap<String, Long> getCountByCategory(@RequestParam(value = "filters", required = false) String filters, @RequestParam(value = "timeRange", required = false) String timeRange) throws IOException {
         return statPresentation.getCountByCategory(this.map(filters), this.setTimeRange(timeRange));
+    }
+
+    @PostMapping("/event_time")
+    public EventTimeRangeDTO getEventTimeRange(@RequestBody EventTimeRangeRequest eventTimeRangeRequest) throws IOException {
+        return statPresentation.getEventTimeRange(eventTimeRangeRequest.getEventStart(), eventTimeRangeRequest.getEventEnd(), eventTimeRangeRequest.getFilters(), eventTimeRangeRequest.getTimeRange());
     }
 
     @GetMapping("/event_time")
