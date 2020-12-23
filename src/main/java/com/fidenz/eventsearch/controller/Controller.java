@@ -1,17 +1,15 @@
 package com.fidenz.eventsearch.controller;
 
 import com.fidenz.eventsearch.dto.*;
-import com.fidenz.eventsearch.entity.EventDetail;
 import com.fidenz.eventsearch.presentation.SearchPresentationInterface;
 import com.fidenz.eventsearch.presentation.StatPresentationInterface;
+import com.fidenz.eventsearch.request.AverageRequest;
+import com.fidenz.eventsearch.request.CountByCategoryRequest;
 import com.fidenz.eventsearch.request.SearchEventRequest;
 import com.fidenz.eventsearch.service.BulkInsertInterface;
-import com.fidenz.eventsearch.service.SearchServiceInterface;
-import com.fidenz.eventsearch.service.StatServiceInterface;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -70,9 +68,19 @@ public class Controller {
         return statPresentation.getCameras(this.map(filters), this.setTimeRange(timeRange));
     }
 
+    @PostMapping("/averages")
+    public AverageCounterDTO getAverages(@RequestBody AverageRequest averageRequest) throws IOException {
+        return statPresentation.getAverages(averageRequest.getFilters());
+    }
+
     @GetMapping("/averages")
     public AverageCounterDTO getAverages(@RequestParam(value = "filters", required = false) String filters) throws IOException {
         return statPresentation.getAverages(this.map(filters));
+    }
+
+    @PostMapping("/events_by_category")
+    public HashMap<String, Long> getCountByCategory(@RequestBody CountByCategoryRequest countByCategoryRequest) throws IOException {
+        return statPresentation.getCountByCategory(countByCategoryRequest.getFilters(), countByCategoryRequest.getTimeRange());
     }
 
     @GetMapping("/events_by_category")
