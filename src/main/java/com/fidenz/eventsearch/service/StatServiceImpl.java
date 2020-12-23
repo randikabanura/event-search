@@ -152,9 +152,9 @@ public class StatServiceImpl implements StatServiceInterface {
         long total_hits =  countResponse.getCount();
 
         AverageCounter averageCounter = new AverageCounter();
-        averageCounter.setAvgForWeek(total_hits/weeks);
-        averageCounter.setAvgForDay(total_hits/days);
-        averageCounter.setAvgForHour(total_hits/hours);
+        averageCounter.setAvgForWeek((float) total_hits/weeks);
+        averageCounter.setAvgForDay((float) total_hits/days);
+        averageCounter.setAvgForHour((float) total_hits/hours);
 
         return averageCounter;
     }
