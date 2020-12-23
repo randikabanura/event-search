@@ -4,12 +4,14 @@ import com.fidenz.eventsearch.dto.*;
 import com.fidenz.eventsearch.entity.EventDetail;
 import com.fidenz.eventsearch.presentation.SearchPresentationInterface;
 import com.fidenz.eventsearch.presentation.StatPresentationInterface;
+import com.fidenz.eventsearch.request.SearchEventRequest;
 import com.fidenz.eventsearch.service.BulkInsertInterface;
 import com.fidenz.eventsearch.service.SearchServiceInterface;
 import com.fidenz.eventsearch.service.StatServiceInterface;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -46,6 +48,11 @@ public class Controller {
     @GetMapping("/event/{id}")
     public EventDetailDTO getEvent(@PathVariable String id) throws IOException {
         return searchPresentation.findById(id);
+    }
+
+    @PostMapping("/search")
+    public Iterable<EventDetailDTO> getSearch(@RequestBody SearchEventRequest searchEventRequest) throws IOException {
+        return searchPresentation.search(searchEventRequest.getQuery(), searchEventRequest.getPage(), searchEventRequest.getFilters(), searchEventRequest.getTimeRange());
     }
 
     @GetMapping("/search")

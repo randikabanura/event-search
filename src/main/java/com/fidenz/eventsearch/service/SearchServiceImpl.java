@@ -38,7 +38,7 @@ public class SearchServiceImpl implements SearchServiceInterface {
     private int pagination_size;
 
 
-    private  String[] includedFields = {"Timestamp", "Node", "Agg", "MessageType", "id", "Event.Topic" , "Event.Params.Message", "Event.Params.Message", "Event.Params.Category", "Event.Params.DeviceName", "Event.Params.Name"};
+    private  final String[] includedFields = {"Timestamp", "Node", "Agg", "MessageType", "id", "Event.Topic" , "Event.Params.Message", "Event.Params.Message", "Event.Params.Category", "Event.Params.DeviceName", "Event.Params.Name"};
 
     @Override
     public EventDetail findById(String id) throws IOException{
