@@ -1,5 +1,6 @@
 type Query {
     eventDetailById(id: ID): EventDetail
+    search(query: String!, first: Int = 25, offset: Int = 0): [EventDetail]!
 }
 
 type EventDetail {
