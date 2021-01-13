@@ -1,0 +1,33 @@
+type Query {
+    eventDetailById(id: ID): EventDetail
+}
+
+type EventDetail {
+    id: ID
+    TypeMessage: String
+    Node: Node
+    Agg: Agg
+    Event: Event
+}
+
+type key_value{
+    key: String
+    value: String
+}
+
+type Event {
+    Topic: String
+    Params: String
+}
+
+type Agg {
+    Name: String
+    IPAddress: String
+    Id: String
+}
+
+type Node {
+    Name: String
+    IPAddress: String
+    Plugins: String
+}
