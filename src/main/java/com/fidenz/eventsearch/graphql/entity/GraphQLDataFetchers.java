@@ -106,4 +106,29 @@ public class GraphQLDataFetchers {
             return eventList;
         };
     }
+
+    public DataFetcher findAll(){
+        return dataFetchingEnvironment -> {
+            int first = dataFetchingEnvironment.getArgument("first");
+            int offset = dataFetchingEnvironment.getArgument("offset");
+
+            SearchRequest searchRequest = new SearchRequest();
+            searchRequest.indices("event_detail");
+            SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+            BoolQueryBuilder searchQuery = QueryBuilders.boolQuery();
+
+            searchSourceBuilder.query(searchQuery).from(offset).size(first);
+
+            searchRequest.source(searchSourceBuilder);
+            SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
+
+            SearchHit[] searchHit = searchResponse.getHits().getHits();
+            List<EventDetail> eventList = new ArrayList<>();
+            for (SearchHit hit : searchHit) {
+                eventList.add(objectMapper.convertValue(hit.getSourceAsMap(), EventDetail.class));
+            }
+
+            return eventList;
+        };
+    }
 }

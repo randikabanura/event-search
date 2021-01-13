@@ -53,6 +53,8 @@ public class GraphQLProvider {
                         .dataFetcher("eventDetailById", graphQLDataFetchers.getEventDetailByIdDataFetcher()))
                 .type(newTypeWiring("Query")
                         .dataFetcher("search", graphQLDataFetchers.searchFetcher()))
+                .type(newTypeWiring("Query")
+                        .dataFetcher("findAll", graphQLDataFetchers.findAll()))
                 .build();
     }
 
