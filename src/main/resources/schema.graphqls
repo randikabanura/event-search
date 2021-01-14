@@ -1,5 +1,7 @@
 type Query {
-    findAverages: GenericCounter
+    findAverages: AverageCounter
+    findCounter: GenericCounter
+    findCameras: [String]!
     findAll( first: Int = 25, offset: Int = 0): [EventDetail]!
     eventDetailById(id: ID): EventDetail
     search(query: String!, first: Int = 25, offset: Int = 0): [EventDetail]!
@@ -36,8 +38,14 @@ type Node {
 }
 
 type GenericCounter {
-    noOfCameras: Float
-    noOfEvents: Float
-    noOfLocations: Float
-    noOfMotionDetectors: Float
+    noOfCameras: Int!
+    noOfEvents: Int!
+    noOfLocations: Int!
+    noOfMotionDetectors: Int!
+}
+
+type AverageCounter {
+    avgForWeek: Float!
+    avgForDay: Float!
+    avgForHour: Float!
 }

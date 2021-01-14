@@ -61,6 +61,10 @@ public class GraphQLProvider {
                         .dataFetcher("findAll", searchDataFetchers.findAllFetcher()))
                 .type(newTypeWiring("Query")
                         .dataFetcher("findAverages", statDataFetchers.getAverages()))
+                .type(newTypeWiring("Query")
+                        .dataFetcher("findCounter", statDataFetchers.getCounter()))
+                .type(newTypeWiring("Query")
+                        .dataFetcher("findCameras", statDataFetchers.getCameras()))
                 .build();
     }
 
