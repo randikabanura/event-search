@@ -1,4 +1,5 @@
 type Query {
+    findAverages: GenericCounter
     findAll( first: Int = 25, offset: Int = 0): [EventDetail]!
     eventDetailById(id: ID): EventDetail
     search(query: String!, first: Int = 25, offset: Int = 0): [EventDetail]!
@@ -32,4 +33,11 @@ type Node {
     Name: String
     IPAddress: String
     Plugins: String
+}
+
+type GenericCounter {
+    noOfCameras: Float
+    noOfEvents: Float
+    noOfLocations: Float
+    noOfMotionDetectors: Float
 }

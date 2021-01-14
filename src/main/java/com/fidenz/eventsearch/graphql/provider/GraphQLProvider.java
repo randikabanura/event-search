@@ -1,10 +1,10 @@
-package com.fidenz.eventsearch.graphql.controller;
+package com.fidenz.eventsearch.graphql.provider;
 
-import com.fidenz.eventsearch.graphql.entity.GraphQLDataFetchers;
+import com.fidenz.eventsearch.graphql.fetcher.SearchDataFetchers;
+import com.fidenz.eventsearch.graphql.fetcher.StatDataFetchers;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import graphql.GraphQL;
-import graphql.Scalars;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
@@ -24,7 +24,11 @@ import static graphql.schema.idl.TypeRuntimeWiring.newTypeWiring;
 public class GraphQLProvider {
 
     @Autowired
-    private GraphQLDataFetchers graphQLDataFetchers;
+    private SearchDataFetchers searchDataFetchers;
+
+    @Autowired
+    private StatDataFetchers statDataFetchers;
+
     private GraphQL graphQL;
 
     @Bean
@@ -50,11 +54,13 @@ public class GraphQLProvider {
     private RuntimeWiring buildWiring() {
         return RuntimeWiring.newRuntimeWiring()
                 .type(newTypeWiring("Query")
-                        .dataFetcher("eventDetailById", graphQLDataFetchers.getEventDetailByIdDataFetcher()))
+                        .dataFetcher("eventDetailById", searchDataFetchers.getEventDetailByIdDataFetcher()))
                 .type(newTypeWiring("Query")
-                        .dataFetcher("search", graphQLDataFetchers.searchFetcher()))
+                        .dataFetcher("search", searchDataFetchers.searchFetcher()))
                 .type(newTypeWiring("Query")
-                        .dataFetcher("findAll", graphQLDataFetchers.findAll()))
+                        .dataFetcher("findAll", searchDataFetchers.findAllFetcher()))
+                .type(newTypeWiring("Query")
+                        .dataFetcher("findAverages", statDataFetchers.getAverages()))
                 .build();
     }
 
