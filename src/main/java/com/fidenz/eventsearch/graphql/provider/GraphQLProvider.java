@@ -67,6 +67,8 @@ public class GraphQLProvider {
                         .dataFetcher("findCameras", statDataFetchers.getCameras()))
                 .type(newTypeWiring("Query")
                         .dataFetcher("findEventTimeRange", statDataFetchers.getEventTimeRange()))
+                .type(newTypeWiring("Query")
+                        .dataFetcher("findCountByCategory", statDataFetchers.getEventByCategory()))
                 .build();
     }
 

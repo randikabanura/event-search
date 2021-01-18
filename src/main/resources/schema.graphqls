@@ -2,10 +2,20 @@ type Query {
     findAverages: AverageCounter
     findCounter: GenericCounter
     findCameras: [String]!
+    findCountByCategory: EventByCategory
     findEventTimeRange(eventStart: String!, eventEnd: String!): EventTimeRange
     findAll( first: Int = 25, offset: Int = 0): [EventDetail]!
     eventDetailById(id: ID): EventDetail
     search(query: String!, first: Int = 25, offset: Int = 0): [EventDetail]!
+}
+
+type EventByCategory {
+    EventCounters: [EventCounter]!
+}
+
+type EventCounter {
+    CameraName: String
+    Count: Int
 }
 
 type EventTimeRange {

@@ -1,10 +1,7 @@
 package com.fidenz.eventsearch.graphql.fetcher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fidenz.eventsearch.entity.AverageCounter;
-import com.fidenz.eventsearch.entity.EventDetail;
-import com.fidenz.eventsearch.entity.EventTimeRange;
-import com.fidenz.eventsearch.entity.GenericCounter;
+import com.fidenz.eventsearch.entity.*;
 import graphql.schema.DataFetcher;
 import org.elasticsearch.action.search.MultiSearchRequest;
 import org.elasticsearch.action.search.MultiSearchResponse;
@@ -204,6 +201,36 @@ public class StatDataFetchers {
             }else{
                 return null;
             }
+        };
+    }
+
+    public DataFetcher getEventByCategory(){
+        return dataFetchingEnvironment -> {
+            TermsAggregationBuilder aggregationBuilderCamera = AggregationBuilders.terms("cameras").field("Event.Params.DeviceName.keyword").size(100000000).minDocCount(1);
+
+            SearchRequest searchRequest = new SearchRequest();
+            searchRequest.indices("event_detail");
+            SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+            BoolQueryBuilder searchQuery = QueryBuilders.boolQuery();
+
+            searchSourceBuilder.query(searchQuery).aggregation(aggregationBuilderCamera);
+
+            searchRequest.source(searchSourceBuilder);
+            SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
+            Terms camera = searchResponse.getAggregations().get("cameras");
+
+            EventByCategory cameraListCount = new EventByCategory();
+            List<EventCounter> eventCounterList = new ArrayList<EventCounter>();
+
+            for (final Terms.Bucket entry : camera.getBuckets()) {
+                EventCounter eventCounter = new EventCounter();
+                eventCounter.setCameraName(entry.getKeyAsString());
+                eventCounter.setCount(entry.getDocCount());
+                eventCounterList.add(eventCounter);
+            }
+
+            cameraListCount.setEventCounters(eventCounterList);
+            return cameraListCount;
         };
     }
 }
