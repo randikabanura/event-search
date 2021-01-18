@@ -2,6 +2,7 @@ package com.fidenz.eventsearch.graphql.fetcher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fidenz.eventsearch.dto.EventDetailDTO;
+import com.fidenz.eventsearch.dto.FilterDTO;
 import com.fidenz.eventsearch.entity.EventDetail;
 import graphql.schema.DataFetcher;
 import org.elasticsearch.action.get.GetRequest;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 public class SearchDataFetchers {
@@ -49,6 +51,14 @@ public class SearchDataFetchers {
 
     public DataFetcher searchFetcher(){
         return dataFetchingEnvironment -> {
+            List<FilterDTO> filtersStringList = dataFetchingEnvironment.getArgument("filters");
+            List<FilterDTO> filters = new ArrayList<>();
+
+            for (int i = 0; i < filtersStringList.size(); i++) {
+                FilterDTO singleFilter = new ObjectMapper().readValue(objectMapper.writeValueAsString(filtersStringList.get(i)), FilterDTO.class);
+                filters.add(singleFilter);
+            }
+
             String query = dataFetchingEnvironment.getArgument("query");
             int first = dataFetchingEnvironment.getArgument("first");
             int offset = dataFetchingEnvironment.getArgument("offset");
@@ -63,6 +73,7 @@ public class SearchDataFetchers {
                 searchQuery.must(multiMatchQuery);
             }
 
+            prepareFilters(searchQuery, filters);
             searchSourceBuilder.query(searchQuery).from(offset).size(first);
             searchRequest.source(searchSourceBuilder);
 
@@ -101,5 +112,17 @@ public class SearchDataFetchers {
 
             return eventList;
         };
+    }
+
+    private void prepareFilters(BoolQueryBuilder searchQuery, List<FilterDTO> filters) {
+        if (filters == null) {
+            return;
+        }
+
+        filters.stream().collect(Collectors.groupingBy(FilterDTO::getKey)).forEach((key, values) -> {
+            BoolQueryBuilder bool = QueryBuilders.boolQuery();
+            values.forEach(value -> bool.should(QueryBuilders.matchQuery(key, value.getValues())));
+            searchQuery.must(bool);
+        });
     }
 }

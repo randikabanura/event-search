@@ -1,12 +1,12 @@
 type Query {
-    findAverages: AverageCounter
-    findCounter: GenericCounter
-    findCameras: [String]!
-    findCountByCategory: EventByCategory
-    findEventTimeRange(eventStart: String!, eventEnd: String!): EventTimeRange
-    findAll( first: Int = 25, offset: Int = 0): [EventDetail]!
+    findAverages(filters: [Filter]): AverageCounter
+    findCounter(filters: [Filter]): GenericCounter
+    findCameras(filters: [Filter]): [String]!
+    findCountByCategory(filters: [Filter]): EventByCategory
+    findEventTimeRange(eventStart: String!, eventEnd: String!, filters: [Filter]): EventTimeRange
+    findAll(first: Int = 25, offset: Int = 0): [EventDetail]!
     eventDetailById(id: ID): EventDetail
-    search(query: String!, first: Int = 25, offset: Int = 0): [EventDetail]!
+    search(query: String!, first: Int = 25, offset: Int = 0,  filters: [Filter]): [EventDetail]!
 }
 
 type EventByCategory {
@@ -34,9 +34,14 @@ type EventDetail {
     Event: Event
 }
 
-type key_value{
-    key: String
-    value: String
+input Filter{
+    key: String!
+    values: String!
+}
+
+input TimeRange {
+    From: String
+    To: String
 }
 
 type Event {

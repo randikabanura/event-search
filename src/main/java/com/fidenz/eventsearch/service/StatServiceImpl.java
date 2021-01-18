@@ -253,6 +253,7 @@ public class StatServiceImpl implements StatServiceInterface {
         if (filters == null) {
             return;
         }
+       System.out.println(filters);
         filters.stream().collect(Collectors.groupingBy(FilterDTO::getKey)).forEach((key, values) -> {
             BoolQueryBuilder bool = QueryBuilders.boolQuery();
             values.forEach(value -> bool.should(QueryBuilders.matchQuery(key, value.getValues())));
