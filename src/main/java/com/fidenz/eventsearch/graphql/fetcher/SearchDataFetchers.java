@@ -3,6 +3,7 @@ package com.fidenz.eventsearch.graphql.fetcher;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fidenz.eventsearch.dto.EventDetailDTO;
 import com.fidenz.eventsearch.dto.FilterDTO;
+import com.fidenz.eventsearch.dto.TimeRangeDTO;
 import com.fidenz.eventsearch.entity.EventDetail;
 import graphql.schema.DataFetcher;
 import org.elasticsearch.action.get.GetRequest;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -51,12 +53,17 @@ public class SearchDataFetchers {
 
     public DataFetcher searchFetcher(){
         return dataFetchingEnvironment -> {
+            HashMap timeRangeString= dataFetchingEnvironment.getArgument("timeRange");
+            TimeRangeDTO timeRangeDTO = new ObjectMapper().readValue(objectMapper.writeValueAsString(timeRangeString), TimeRangeDTO.class);
+
             List<FilterDTO> filtersStringList = dataFetchingEnvironment.getArgument("filters");
             List<FilterDTO> filters = new ArrayList<>();
 
-            for (int i = 0; i < filtersStringList.size(); i++) {
-                FilterDTO singleFilter = new ObjectMapper().readValue(objectMapper.writeValueAsString(filtersStringList.get(i)), FilterDTO.class);
-                filters.add(singleFilter);
+            if(filtersStringList != null) {
+                for (int i = 0; i < filtersStringList.size(); i++) {
+                    FilterDTO singleFilter = new ObjectMapper().readValue(objectMapper.writeValueAsString(filtersStringList.get(i)), FilterDTO.class);
+                    filters.add(singleFilter);
+                }
             }
 
             String query = dataFetchingEnvironment.getArgument("query");
@@ -73,6 +80,9 @@ public class SearchDataFetchers {
                 searchQuery.must(multiMatchQuery);
             }
 
+            if(timeRangeDTO != null) {
+                searchQuery.filter(QueryBuilders.rangeQuery("Timestamp").gte(timeRangeDTO.getFrom()).lte(timeRangeDTO.getTo()));
+            }
             prepareFilters(searchQuery, filters);
             searchSourceBuilder.query(searchQuery).from(offset).size(first);
             searchRequest.source(searchSourceBuilder);

@@ -2,6 +2,7 @@ package com.fidenz.eventsearch.graphql.fetcher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fidenz.eventsearch.dto.FilterDTO;
+import com.fidenz.eventsearch.dto.TimeRangeDTO;
 import com.fidenz.eventsearch.entity.*;
 import graphql.schema.DataFetcher;
 import org.apache.tomcat.util.json.JSONParser;
@@ -31,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,12 +47,17 @@ public class StatDataFetchers {
 
     public DataFetcher getCounter(){
         return dataFetchingEnvironment -> {
+            HashMap timeRangeString= dataFetchingEnvironment.getArgument("timeRange");
+            TimeRangeDTO timeRangeDTO = new ObjectMapper().readValue(objectMapper.writeValueAsString(timeRangeString), TimeRangeDTO.class);
+
             List<FilterDTO> filtersStringList = dataFetchingEnvironment.getArgument("filters");
             List<FilterDTO> filters = new ArrayList<>();
 
-            for (int i = 0; i < filtersStringList.size(); i++) {
-                FilterDTO singleFilter = new ObjectMapper().readValue(objectMapper.writeValueAsString(filtersStringList.get(i)), FilterDTO.class);
-                filters.add(singleFilter);
+            if(filtersStringList != null) {
+                for (int i = 0; i < filtersStringList.size(); i++) {
+                    FilterDTO singleFilter = new ObjectMapper().readValue(objectMapper.writeValueAsString(filtersStringList.get(i)), FilterDTO.class);
+                    filters.add(singleFilter);
+                }
             }
 
             TermsAggregationBuilder aggregationBuilderAggName = AggregationBuilders.terms("agg_names").field("Agg.Name.keyword").size(100000000).minDocCount(1);
@@ -62,6 +69,10 @@ public class StatDataFetchers {
             searchRequest.indices("event_detail");
             SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
             BoolQueryBuilder searchQuery = QueryBuilders.boolQuery();
+
+            if(timeRangeDTO != null) {
+                searchQuery.filter(QueryBuilders.rangeQuery("Timestamp").gte(timeRangeDTO.getFrom()).lte(timeRangeDTO.getTo()));
+            }
             prepareFilters(searchQuery, filters);
 
             searchSourceBuilder.query(searchQuery).aggregation(aggregationBuilderAggName)
@@ -91,9 +102,11 @@ public class StatDataFetchers {
             List<FilterDTO> filtersStringList = dataFetchingEnvironment.getArgument("filters");
             List<FilterDTO> filters = new ArrayList<>();
 
-            for (int i = 0; i < filtersStringList.size(); i++) {
-                FilterDTO singleFilter = new ObjectMapper().readValue(objectMapper.writeValueAsString(filtersStringList.get(i)), FilterDTO.class);
-                filters.add(singleFilter);
+            if(filtersStringList != null) {
+                for (int i = 0; i < filtersStringList.size(); i++) {
+                    FilterDTO singleFilter = new ObjectMapper().readValue(objectMapper.writeValueAsString(filtersStringList.get(i)), FilterDTO.class);
+                    filters.add(singleFilter);
+                }
             }
 
             CountRequest countRequest = new CountRequest();
@@ -143,12 +156,17 @@ public class StatDataFetchers {
 
     public DataFetcher getCameras(){
         return dataFetchingEnvironment -> {
+            HashMap timeRangeString= dataFetchingEnvironment.getArgument("timeRange");
+            TimeRangeDTO timeRangeDTO = new ObjectMapper().readValue(objectMapper.writeValueAsString(timeRangeString), TimeRangeDTO.class);
+
             List<FilterDTO> filtersStringList = dataFetchingEnvironment.getArgument("filters");
             List<FilterDTO> filters = new ArrayList<>();
 
-            for (int i = 0; i < filtersStringList.size(); i++) {
-                FilterDTO singleFilter = new ObjectMapper().readValue(objectMapper.writeValueAsString(filtersStringList.get(i)), FilterDTO.class);
-                filters.add(singleFilter);
+            if(filtersStringList != null) {
+                for (int i = 0; i < filtersStringList.size(); i++) {
+                    FilterDTO singleFilter = new ObjectMapper().readValue(objectMapper.writeValueAsString(filtersStringList.get(i)), FilterDTO.class);
+                    filters.add(singleFilter);
+                }
             }
 
             TermsAggregationBuilder aggregationBuilderCamera = AggregationBuilders.terms("cameras").field("Event.Params.DeviceName.keyword").size(100000000).minDocCount(1);
@@ -157,6 +175,9 @@ public class StatDataFetchers {
             searchRequest.indices("event_detail");
             SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
             BoolQueryBuilder searchQuery = QueryBuilders.boolQuery();
+            if(timeRangeDTO != null) {
+                searchQuery.filter(QueryBuilders.rangeQuery("Timestamp").gte(timeRangeDTO.getFrom()).lte(timeRangeDTO.getTo()));
+            }
             prepareFilters(searchQuery, filters);
 
             searchSourceBuilder.query(searchQuery).aggregation(aggregationBuilderCamera);
@@ -176,12 +197,17 @@ public class StatDataFetchers {
 
     public DataFetcher getEventTimeRange(){
         return dataFetchingEnvironment -> {
+            HashMap timeRangeString= dataFetchingEnvironment.getArgument("timeRange");
+            TimeRangeDTO timeRangeDTO = new ObjectMapper().readValue(objectMapper.writeValueAsString(timeRangeString), TimeRangeDTO.class);
+
             List<FilterDTO> filtersStringList = dataFetchingEnvironment.getArgument("filters");
             List<FilterDTO> filters = new ArrayList<>();
 
-            for (int i = 0; i < filtersStringList.size(); i++) {
-                FilterDTO singleFilter = new ObjectMapper().readValue(objectMapper.writeValueAsString(filtersStringList.get(i)), FilterDTO.class);
-                filters.add(singleFilter);
+            if(filtersStringList != null) {
+                for (int i = 0; i < filtersStringList.size(); i++) {
+                    FilterDTO singleFilter = new ObjectMapper().readValue(objectMapper.writeValueAsString(filtersStringList.get(i)), FilterDTO.class);
+                    filters.add(singleFilter);
+                }
             }
 
             String eventStart = dataFetchingEnvironment.getArgument("eventStart");
@@ -190,6 +216,9 @@ public class StatDataFetchers {
             MultiSearchRequest request = new MultiSearchRequest();
             SearchRequest firstSearchRequest = new SearchRequest();
             BoolQueryBuilder searchQueryFirst = QueryBuilders.boolQuery();
+            if(timeRangeDTO != null) {
+                searchQueryFirst.filter(QueryBuilders.rangeQuery("Timestamp").gte(timeRangeDTO.getFrom()).lte(timeRangeDTO.getTo()));
+            }
             searchQueryFirst.must(QueryBuilders.matchQuery("Event.Params.Name", eventStart).operator(Operator.AND));
             SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
             prepareFilters(searchQueryFirst, filters);
@@ -200,6 +229,9 @@ public class StatDataFetchers {
             request.add(firstSearchRequest);
             SearchRequest secondSearchRequest = new SearchRequest();
             BoolQueryBuilder searchQuerySecond = QueryBuilders.boolQuery();
+            if(timeRangeDTO != null) {
+                searchQuerySecond.filter(QueryBuilders.rangeQuery("Timestamp").gte(timeRangeDTO.getFrom()).lte(timeRangeDTO.getTo()));
+            }
             searchQuerySecond.must(QueryBuilders.matchQuery("Event.Params.Name", eventEnd).operator(Operator.AND));
             prepareFilters(searchQuerySecond, filters);
             searchSourceBuilder = new SearchSourceBuilder();
@@ -247,12 +279,17 @@ public class StatDataFetchers {
 
     public DataFetcher getEventByCategory(){
         return dataFetchingEnvironment -> {
+            HashMap timeRangeString= dataFetchingEnvironment.getArgument("timeRange");
+            TimeRangeDTO timeRangeDTO = new ObjectMapper().readValue(objectMapper.writeValueAsString(timeRangeString), TimeRangeDTO.class);
+
             List<FilterDTO> filtersStringList = dataFetchingEnvironment.getArgument("filters");
             List<FilterDTO> filters = new ArrayList<>();
 
-            for (int i = 0; i < filtersStringList.size(); i++) {
-                FilterDTO singleFilter = new ObjectMapper().readValue(objectMapper.writeValueAsString(filtersStringList.get(i)), FilterDTO.class);
-                filters.add(singleFilter);
+            if(filtersStringList != null) {
+                for (int i = 0; i < filtersStringList.size(); i++) {
+                    FilterDTO singleFilter = new ObjectMapper().readValue(objectMapper.writeValueAsString(filtersStringList.get(i)), FilterDTO.class);
+                    filters.add(singleFilter);
+                }
             }
 
             TermsAggregationBuilder aggregationBuilderCamera = AggregationBuilders.terms("cameras").field("Event.Params.DeviceName.keyword").size(100000000).minDocCount(1);
@@ -261,6 +298,10 @@ public class StatDataFetchers {
             searchRequest.indices("event_detail");
             SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
             BoolQueryBuilder searchQuery = QueryBuilders.boolQuery();
+
+            if(timeRangeDTO != null) {
+                searchQuery.filter(QueryBuilders.rangeQuery("Timestamp").gte(timeRangeDTO.getFrom()).lte(timeRangeDTO.getTo()));
+            }
             prepareFilters(searchQuery, filters);
 
             searchSourceBuilder.query(searchQuery).aggregation(aggregationBuilderCamera);
