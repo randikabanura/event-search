@@ -1,13 +1,13 @@
 package com.fidenz.eventsearch.graphql.fetcher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fidenz.eventsearch.dto.EventDetailDTO;
 import com.fidenz.eventsearch.entity.AverageCounter;
 import com.fidenz.eventsearch.entity.EventDetail;
+import com.fidenz.eventsearch.entity.EventTimeRange;
 import com.fidenz.eventsearch.entity.GenericCounter;
 import graphql.schema.DataFetcher;
-import org.elasticsearch.action.get.GetRequest;
-import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.search.MultiSearchRequest;
+import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -15,7 +15,7 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.core.CountRequest;
 import org.elasticsearch.client.core.CountResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.MultiMatchQueryBuilder;
+import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
@@ -26,16 +26,12 @@ import org.elasticsearch.search.aggregations.metrics.CardinalityAggregationBuild
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
-import org.joda.time.DateTime;
-import org.joda.time.Days;
-import org.joda.time.Hours;
-import org.joda.time.Weeks;
+import org.joda.time.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Component
 public class StatDataFetchers {
@@ -147,6 +143,67 @@ public class StatDataFetchers {
                 cameraList.add(entry.getKeyAsString());
             }
             return cameraList;
+        };
+    }
+
+    public DataFetcher getEventTimeRange(){
+        return dataFetchingEnvironment -> {
+            String eventStart = dataFetchingEnvironment.getArgument("eventStart");
+            String eventEnd = dataFetchingEnvironment.getArgument("eventEnd");
+
+            MultiSearchRequest request = new MultiSearchRequest();
+            SearchRequest firstSearchRequest = new SearchRequest();
+            BoolQueryBuilder searchQueryFirst = QueryBuilders.boolQuery();
+            searchQueryFirst.must(QueryBuilders.matchQuery("Event.Params.Name", eventStart).operator(Operator.AND));
+            SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+            searchSourceBuilder.query(searchQueryFirst);
+            searchSourceBuilder.sort(new FieldSortBuilder("Timestamp").order(SortOrder.DESC));
+            searchSourceBuilder.size(1);
+            firstSearchRequest.source(searchSourceBuilder);
+            request.add(firstSearchRequest);
+            SearchRequest secondSearchRequest = new SearchRequest();
+            BoolQueryBuilder searchQuerySecond = QueryBuilders.boolQuery();
+            searchQuerySecond.must(QueryBuilders.matchQuery("Event.Params.Name", eventEnd).operator(Operator.AND));
+            searchSourceBuilder = new SearchSourceBuilder();
+            searchSourceBuilder.query(searchQuerySecond);
+            searchSourceBuilder.sort(new FieldSortBuilder("Timestamp").order(SortOrder.DESC));
+            searchSourceBuilder.size(1);
+            secondSearchRequest.source(searchSourceBuilder);
+            request.add(secondSearchRequest);
+
+            MultiSearchResponse multiSearchResponse = client.msearch(request, RequestOptions.DEFAULT);
+
+            MultiSearchResponse.Item firstResponse = multiSearchResponse.getResponses()[0];
+            SearchResponse searchResponseFirst = firstResponse.getResponse();
+            MultiSearchResponse.Item secondResponse = multiSearchResponse.getResponses()[1];
+            SearchResponse searchResponseSecond = secondResponse.getResponse();
+
+
+            SearchHit[] searchHitSecond = searchResponseSecond.getHits().getHits();
+            EventDetail eventDetailSecond = new EventDetail();
+            for (SearchHit hit : searchHitSecond) {
+                eventDetailSecond = objectMapper.convertValue(hit.getSourceAsMap(), EventDetail.class);
+            }
+
+            SearchHit[] searchHitFirst = searchResponseFirst.getHits().getHits();
+            EventDetail eventDetailFirst = new EventDetail();
+            for (SearchHit hit : searchHitFirst) {
+                eventDetailFirst = objectMapper.convertValue(hit.getSourceAsMap(), EventDetail.class);
+            }
+
+
+            if(searchHitFirst.length == 1 && searchHitSecond.length == 1) {
+                EventTimeRange eventTimeRange = new EventTimeRange();
+                eventTimeRange.setEndEvent(eventDetailSecond);
+                eventTimeRange.setStartEvent(eventDetailFirst);
+                eventTimeRange.setFrom(eventDetailFirst.getTimestamp());
+                eventTimeRange.setTo(eventDetailSecond.getTimestamp());
+                Period period = new Period(eventDetailFirst.getTimestamp(), eventDetailSecond.getTimestamp());
+                eventTimeRange.setRange(period.toStandardDuration().getMillis());
+                return eventTimeRange;
+            }else{
+                return null;
+            }
         };
     }
 }
